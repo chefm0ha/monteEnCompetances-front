@@ -22,9 +22,11 @@ export const AuthProvider = ({ children }) => {
 
         if (decodedToken.exp < currentTime) {
           // Token expired
+          console.log("Token expired, logging out")
           logout()
         } else {
           // Valid token, fetch user data
+          console.log("Valid token found, fetching user data")
           fetchUserData(token)
         }
       } catch (error) {
@@ -32,12 +34,22 @@ export const AuthProvider = ({ children }) => {
         logout()
       }
     } else {
+      console.log("No token found")
       setLoading(false)
     }
   }, [])
 
   const fetchUserData = async (token) => {
     try {
+      // Si nous avons déjà les données utilisateur dans le localStorage, utilisons-les
+      const storedUserData = localStorage.getItem("userData")
+      if (storedUserData) {
+        setCurrentUser(JSON.parse(storedUserData))
+        setLoading(false)
+        return
+      }
+
+      // Sinon, essayons de récupérer les données utilisateur depuis l'API
       const userData = await authService.getCurrentUser(token)
       setCurrentUser(userData)
       setLoading(false)
@@ -51,13 +63,28 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true)
-      const { token, user } = await authService.login(email, password)
-      localStorage.setItem("token", token)
-      setCurrentUser(user)
       setError(null)
+
+      console.log("Attempting login with:", { email })
+      const response = await authService.login(email, password)
+      console.log("Login response:", response)
+
+      // Extraire le token et les données utilisateur de la réponse
+      const { token, userDTO } = response
+
+      // Stocker le token dans localStorage
+      localStorage.setItem("token", token)
+
+      // Stocker les données utilisateur dans localStorage pour éviter des appels API supplémentaires
+      localStorage.setItem("userData", JSON.stringify(userDTO))
+
+      // Mettre à jour l'état avec les données utilisateur
+      setCurrentUser(userDTO)
+
       return true
     } catch (error) {
-      setError(error.response?.data?.message || "Login failed")
+      console.error("Login error:", error)
+      setError(error.response?.data?.message || "Login failed. Please check your credentials.")
       return false
     } finally {
       setLoading(false)
@@ -66,6 +93,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token")
+    localStorage.removeItem("userData")
     setCurrentUser(null)
   }
 
@@ -79,4 +107,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-

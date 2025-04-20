@@ -3,14 +3,18 @@ import { Toaster } from "./components/ui/toaster"
 import { AuthProvider } from "./context/AuthContext"
 import { ChatbotProvider } from "./context/ChatbotContext"
 import ProtectedRoute from "./components/ProtectedRoute"
+import AdminRoute from "./components/AdminRoute" // Nous allons créer ce composant
 import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
+import AdminDashboard from "./pages/AdminDashboard"
 import FormationDetails from "./pages/FormationDetails"
 import ModuleContent from "./pages/ModuleContent"
 import Quiz from "./pages/Quiz"
 import Certificate from "./pages/Certificate"
 import NotFound from "./pages/NotFound"
 import ChatbotWidget from "./components/ChatbotWidget"
+import CollaborateursManagement from "./pages/CollaborateursManagement"
+import CollaborateurEdit from "./pages/CollaborateurEdit"
 
 function App() {
   return (
@@ -28,6 +32,14 @@ function App() {
                 <Route path="/formation/:formationId/module/:moduleId" element={<ModuleContent />} />
                 <Route path="/formation/:formationId/module/:moduleId/quiz" element={<Quiz />} />
                 <Route path="/formation/:formationId/certificate" element={<Certificate />} />
+
+                {/* Routes d'administration */}
+                <Route element={<AdminRoute />}>
+                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route path="/admin/collaborateurs" element={<CollaborateursManagement />} />
+                  <Route path="/admin/collaborateurs/:id" element={<CollaborateurEdit />} />
+                  <Route path="/admin/collaborateurs/new" element={<CollaborateurEdit />} />
+                </Route>
               </Route>
 
               <Route path="*" element={<NotFound />} />

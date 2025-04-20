@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "../components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Loader2, AlertCircle, BookOpen, CheckCircle, Clock } from "lucide-react"
 import FormationCard from "../components/FormationCard"
+import UserDebugInfo from "../components/UserDebugInfo"
 
 const Dashboard = () => {
   const { currentUser } = useAuth()
@@ -19,8 +20,43 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchFormations = async () => {
       try {
-        const data = await formationService.getAssignedFormations()
-        setFormations(data)
+        // Pour le développement, utilisons des données fictives si l'API n'est pas disponible
+        try {
+          const data = await formationService.getAssignedFormations()
+          setFormations(data)
+        } catch (apiError) {
+          console.warn("Couldn't fetch formations from API, using mock data", apiError)
+          // Données fictives pour le développement
+          setFormations([
+            {
+              id: "formation1",
+              title: "Introduction à la cybersécurité",
+              description: "Les bases de la sécurité informatique pour les nouveaux collaborateurs",
+              progress: 75,
+              completedModules: 3,
+              totalModules: 4,
+              duration: 8,
+            },
+            {
+              id: "formation2",
+              title: "RGPD et protection des données",
+              description: "Comprendre les enjeux de la protection des données personnelles",
+              progress: 100,
+              completedModules: 5,
+              totalModules: 5,
+              duration: 4,
+            },
+            {
+              id: "formation3",
+              title: "Outils collaboratifs",
+              description: "Maîtriser les outils de collaboration en ligne",
+              progress: 0,
+              completedModules: 0,
+              totalModules: 3,
+              duration: 6,
+            },
+          ])
+        }
       } catch (error) {
         console.error("Error fetching formations:", error)
         setError("Impossible de récupérer vos formations. Veuillez réessayer plus tard.")
@@ -78,6 +114,9 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold tracking-tight">Tableau de bord</h1>
         <p className="text-gray-500">Bienvenue, {currentUser?.firstName}. Voici vos formations.</p>
       </div>
+
+      {/* Composant de débogage pour afficher les informations utilisateur */}
+      <UserDebugInfo />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -140,4 +179,3 @@ const Dashboard = () => {
 }
 
 export default Dashboard
-

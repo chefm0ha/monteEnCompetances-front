@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import { Button } from "./ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { Button } from "../components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +12,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
-import { Home, BookOpen, User, LogOut, Menu, X } from "lucide-react"
+} from "../components/ui/dropdown-menu"
+import { Home, BookOpen, User, LogOut, Menu, X, Users, BarChart } from "lucide-react"
 import { APP_SETTINGS } from "../config"
 
 const Layout = ({ children }) => {
@@ -29,6 +29,8 @@ const Layout = ({ children }) => {
     logout()
     navigate("/login")
   }
+
+  const isAdmin = currentUser?.role === "ADMIN"
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -55,18 +57,51 @@ const Layout = ({ children }) => {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4">
             <ul className="space-y-2">
-              <li>
-                <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/dashboard")}>
-                  <Home className="mr-2 h-5 w-5" />
-                  Tableau de bord
-                </Button>
-              </li>
-              <li>
-                <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/dashboard")}>
-                  <BookOpen className="mr-2 h-5 w-5" />
-                  Mes formations
-                </Button>
-              </li>
+              {isAdmin ? (
+                <>
+                  <li>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => navigate("/admin/dashboard")}
+                    >
+                      <BarChart className="mr-2 h-5 w-5" />
+                      Tableau de bord admin
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => navigate("/admin/collaborateurs")}
+                    >
+                      <Users className="mr-2 h-5 w-5" />
+                      Gestion collaborateurs
+                    </Button>
+                  </li>
+                  <li className="pt-2 border-t">
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/dashboard")}>
+                      <Home className="mr-2 h-5 w-5" />
+                      Vue collaborateur
+                    </Button>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/dashboard")}>
+                      <Home className="mr-2 h-5 w-5" />
+                      Tableau de bord
+                    </Button>
+                  </li>
+                  <li>
+                    <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/dashboard")}>
+                      <BookOpen className="mr-2 h-5 w-5" />
+                      Mes formations
+                    </Button>
+                  </li>
+                </>
+              )}
             </ul>
           </nav>
 
@@ -94,6 +129,12 @@ const Layout = ({ children }) => {
                   <User className="mr-2 h-4 w-4" />
                   Profil
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate("/admin/dashboard")}>
+                    <BarChart className="mr-2 h-4 w-4" />
+                    Administration
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Déconnexion
@@ -116,4 +157,3 @@ const Layout = ({ children }) => {
 }
 
 export default Layout
-

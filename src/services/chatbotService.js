@@ -3,6 +3,7 @@ import { API_URL } from "../config"
 
 const API = axios.create({
   baseURL: API_URL,
+  withCredentials: true
 })
 
 // Add token to requests
@@ -21,8 +22,12 @@ API.interceptors.request.use(
 
 export const chatbotService = {
   sendMessage: async (message) => {
-    const response = await API.post("/chatbot/message", { message })
-    return response.data.response
+    try {
+      const response = await API.post("/chatbot/message", { message })
+      return response.data.response
+    } catch (error) {
+      console.error("Error sending message to chatbot:", error)
+      throw error
+    }
   },
 }
-

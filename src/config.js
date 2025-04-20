@@ -1,5 +1,5 @@
-// API URL - Change this to your actual API URL
-export const API_URL = "http://localhost:8080/api"
+// API URL
+export const API_URL = "http://localhost:4001"
 
 // File storage URL for accessing files from Google Cloud Storage
 export const STORAGE_URL = "https://storage.googleapis.com/your-bucket-name"
