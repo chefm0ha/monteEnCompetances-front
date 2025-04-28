@@ -6,9 +6,10 @@ import { useAuth } from "../context/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Alert, AlertDescription } from "../components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
-import { Loader2, AlertCircle, BookOpen, CheckCircle, Clock } from "lucide-react"
+import { Loader2, AlertCircle, BookOpen, CheckCircle, Clock, XCircle } from "lucide-react"
 import FormationCard from "../components/FormationCard"
-import UserDebugInfo from "../components/UserDebugInfo"
+import { useNavigate } from "react-router-dom"
+import { Button } from "../components/ui/button"
 
 const Dashboard = () => {
   const { currentUser } = useAuth()
@@ -112,11 +113,8 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Tableau de bord</h1>
-        <p className="text-gray-500">Bienvenue, {currentUser?.firstName}. Voici vos formations.</p>
+        <p className="text-gray-500">Bienvenue, {currentUser?.firstName}. Voici vos formations en cours.</p>
       </div>
-
-      {/* Composant de débogage pour afficher les informations utilisateur */}
-      <UserDebugInfo />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>

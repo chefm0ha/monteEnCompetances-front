@@ -1,3 +1,4 @@
+// src/components/AdminRoute.jsx
 "use client"
 
 import { Navigate, Outlet } from "react-router-dom"

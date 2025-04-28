@@ -120,12 +120,12 @@ const AdminDashboard = () => {
           label: "Nombre de collaborateurs",
           data: collaborateursStats ? Object.values(collaborateursStats.postes) : [],
           backgroundColor: [
-            "rgba(255, 99, 132, 0.6)",
-            "rgba(54, 162, 235, 0.6)",
-            "rgba(255, 206, 86, 0.6)",
-            "rgba(75, 192, 192, 0.6)",
-            "rgba(153, 102, 255, 0.6)",
-            "rgba(255, 159, 64, 0.6)",
+            "rgba(255, 99, 132, 0.2)",
+            "rgba(54, 162, 235, 0.2)",
+            "rgba(255, 206, 86, 0.2)",
+            "rgba(75, 192, 192, 0.2)",
+            "rgba(153, 102, 255, 0.2)",
+            "rgba(255, 159, 64, 0.2)",
           ],
           borderColor: [
             "rgba(255, 99, 132, 1)",
@@ -134,32 +134,6 @@ const AdminDashboard = () => {
             "rgba(75, 192, 192, 1)",
             "rgba(153, 102, 255, 1)",
             "rgba(255, 159, 64, 1)",
-          ],
-          borderWidth: 1,
-        },
-      ],
-    }
-
-    // Graphique des collaborateurs par département
-    const collaborateursDepartementsData = {
-      labels: collaborateursStats ? Object.keys(collaborateursStats.departements) : [],
-      datasets: [
-        {
-          label: "Nombre de collaborateurs",
-          data: collaborateursStats ? Object.values(collaborateursStats.departements) : [],
-          backgroundColor: [
-            "rgba(75, 192, 192, 0.6)",
-            "rgba(255, 99, 132, 0.6)",
-            "rgba(54, 162, 235, 0.6)",
-            "rgba(255, 206, 86, 0.6)",
-            "rgba(153, 102, 255, 0.6)",
-          ],
-          borderColor: [
-            "rgba(75, 192, 192, 1)",
-            "rgba(255, 99, 132, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255, 206, 86, 1)",
-            "rgba(153, 102, 255, 1)",
           ],
           borderWidth: 1,
         },
@@ -189,7 +163,6 @@ const AdminDashboard = () => {
     return {
       formationsCategoriesData,
       collaborateursPostesData,
-      collaborateursDepartementsData,
       formationsProgressionData,
     }
   }
@@ -296,17 +269,10 @@ const AdminDashboard = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Collaborateurs par département</CardTitle>
+                <CardTitle>Répartition par poste</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <Pie
-                    data={chartData.collaborateursDepartementsData}
-                    options={{
-                      maintainAspectRatio: false,
-                    }}
-                  />
-                </div>
+                <Bar data={chartData.collaborateursPostesData} />
               </CardContent>
             </Card>
           </div>
@@ -323,18 +289,29 @@ const AdminDashboard = () => {
                       <th className="text-left py-3 px-4">Nom</th>
                       <th className="text-left py-3 px-4">Email</th>
                       <th className="text-left py-3 px-4">Poste</th>
-                      <th className="text-left py-3 px-4">Département</th>
+                      <th className="text-right py-3 px-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {collaborateursStats?.collaborateursRecents?.map((collab) => (
+                    {collaborateursStats?.collaborateursRecents.map((collab) => (
                       <tr key={collab.id} className="border-b hover:bg-gray-50">
                         <td className="py-3 px-4">
                           {collab.firstName} {collab.lastName}
                         </td>
                         <td className="py-3 px-4">{collab.email}</td>
                         <td className="py-3 px-4">{collab.poste}</td>
-                        <td className="py-3 px-4">{collab.departement}</td>
+                        <td className="py-3 px-4 flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/admin/collaborateurs/${collab.id}`)}
+                          >
+                            Éditer
+                          </Button>
+                          <Button variant="destructive" size="sm">
+                            Supprimer
+                          </Button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -407,22 +384,10 @@ const AdminDashboard = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Collaborateurs par poste</CardTitle>
+              <CardTitle>Répartition par poste</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
-                <Bar
-                  data={chartData.collaborateursPostesData}
-                  options={{
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: {
-                        display: false,
-                      },
-                    },
-                  }}
-                />
-              </div>
+              <Bar data={chartData.collaborateursPostesData} />
             </CardContent>
           </Card>
 
@@ -438,20 +403,18 @@ const AdminDashboard = () => {
                       <th className="text-left py-3 px-4">Nom</th>
                       <th className="text-left py-3 px-4">Email</th>
                       <th className="text-left py-3 px-4">Poste</th>
-                      <th className="text-left py-3 px-4">Département</th>
-                      <th className="text-left py-3 px-4">Actions</th>
+                      <th className="text-right py-3 px-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {collaborateursStats?.collaborateursRecents?.map((collab) => (
+                    {collaborateursStats?.collaborateursRecents.map((collab) => (
                       <tr key={collab.id} className="border-b hover:bg-gray-50">
                         <td className="py-3 px-4">
                           {collab.firstName} {collab.lastName}
                         </td>
                         <td className="py-3 px-4">{collab.email}</td>
                         <td className="py-3 px-4">{collab.poste}</td>
-                        <td className="py-3 px-4">{collab.departement}</td>
-                        <td className="py-3 px-4 flex space-x-2">
+                        <td className="py-3 px-4 flex justify-end space-x-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -509,33 +472,10 @@ const AdminDashboard = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Collaborateurs par poste</CardTitle>
+                <CardTitle>Répartition par poste</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <Bar
-                    data={chartData.collaborateursPostesData}
-                    options={{
-                      maintainAspectRatio: false,
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Collaborateurs par département</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <Pie
-                    data={chartData.collaborateursDepartementsData}
-                    options={{
-                      maintainAspectRatio: false,
-                    }}
-                  />
-                </div>
+                <Bar data={chartData.collaborateursPostesData} />
               </CardContent>
             </Card>
           </div>

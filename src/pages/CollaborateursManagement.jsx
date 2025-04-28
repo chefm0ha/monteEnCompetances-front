@@ -4,11 +4,12 @@ import { useState, useEffect } from "react"
 import { useAuth } from "../context/AuthContext"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Alert, AlertDescription } from "../components/ui/alert"
-import { Loader2, AlertCircle, Search, Plus, Edit, Trash2 } from "lucide-react"
+import { Loader2, AlertCircle, Search, Plus, Edit, Trash2, Filter, ArrowUpDown, RefreshCcw } from "lucide-react"
 import { collaborateurService } from "../services/collaborateurService"
 import { useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
+import { useToast } from "../hooks/use-toast"
 import {
   Dialog,
   DialogContent,
@@ -19,10 +20,18 @@ import {
 } from "../components/ui/dialog"
 import { Label } from "../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu"
+import Swal from 'sweetalert2'
 
 const CollaborateursManagement = () => {
   const { currentUser } = useAuth()
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [collaborateurs, setCollaborateurs] = useState([])
@@ -34,14 +43,19 @@ const CollaborateursManagement = () => {
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
+    role: "COLLABORATEUR",
     poste: "",
-    departement: "",
   })
   const [formError, setFormError] = useState("")
+  const [filters, setFilters] = useState({
+    poste: "",
+    sortBy: "recent"
+  })
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false)
 
-  // Liste des postes et départements pour les sélecteurs
+  // Liste des postes pour les sélecteurs
   const postes = ["Développeur", "Designer", "Chef de projet", "Marketing", "RH", "Finance", "Autre"]
-  const departements = ["IT", "Marketing", "RH", "Finance", "Direction", "Autre"]
 
   useEffect(() => {
     // Vérifier si l'utilisateur est un administrateur
@@ -51,59 +65,21 @@ const CollaborateursManagement = () => {
     }
 
     fetchCollaborateurs()
-  }, [currentUser, navigate])
+  }, [currentUser, navigate, filters])
 
   const fetchCollaborateurs = async () => {
     try {
       setLoading(true)
-      const data = await collaborateurService.getAllCollaborateurs()
+      // Pass the filters to the service
+      const searchParams = {
+        ...filters,
+        search: searchTerm
+      }
+      const data = await collaborateurService.getAllCollaborateurs(searchParams)
       setCollaborateurs(data)
     } catch (error) {
       console.error("Error fetching collaborateurs:", error)
       setError("Impossible de récupérer la liste des collaborateurs. Veuillez réessayer plus tard.")
-      // Utiliser des données fictives pour le développement
-      setCollaborateurs([
-        {
-          id: 1,
-          firstName: "Jean",
-          lastName: "Dupont",
-          email: "jean.dupont@example.com",
-          poste: "Développeur",
-          departement: "IT",
-        },
-        {
-          id: 2,
-          firstName: "Marie",
-          lastName: "Martin",
-          email: "marie.martin@example.com",
-          poste: "Designer",
-          departement: "IT",
-        },
-        {
-          id: 3,
-          firstName: "Pierre",
-          lastName: "Durand",
-          email: "pierre.durand@example.com",
-          poste: "Chef de projet",
-          departement: "IT",
-        },
-        {
-          id: 4,
-          firstName: "Sophie",
-          lastName: "Lefebvre",
-          email: "sophie.lefebvre@example.com",
-          poste: "Marketing",
-          departement: "Marketing",
-        },
-        {
-          id: 5,
-          firstName: "Thomas",
-          lastName: "Moreau",
-          email: "thomas.moreau@example.com",
-          poste: "RH",
-          departement: "RH",
-        },
-      ])
     } finally {
       setLoading(false)
     }
@@ -113,16 +89,14 @@ const CollaborateursManagement = () => {
     setSearchTerm(e.target.value)
   }
 
-  const filteredCollaborateurs = collaborateurs.filter((collab) => {
-    const fullName = `${collab.firstName} ${collab.lastName}`.toLowerCase()
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      fullName.includes(searchLower) ||
-      collab.email.toLowerCase().includes(searchLower) ||
-      collab.poste?.toLowerCase().includes(searchLower) ||
-      collab.departement?.toLowerCase().includes(searchLower)
-    )
-  })
+  const handleSearchSubmit = (e) => {
+    e.preventDefault()
+    fetchCollaborateurs()
+  }
+
+  const handleRefresh = () => {
+    fetchCollaborateurs()
+  }
 
   const handleDeleteClick = (collaborateur) => {
     setCollaborateurToDelete(collaborateur)
@@ -137,9 +111,18 @@ const CollaborateursManagement = () => {
       setCollaborateurs(collaborateurs.filter((c) => c.id !== collaborateurToDelete.id))
       setIsDeleteDialogOpen(false)
       setCollaborateurToDelete(null)
+      
+      toast({
+        title: "Collaborateur supprimé",
+        description: `${collaborateurToDelete.firstName} ${collaborateurToDelete.lastName} a été supprimé avec succès.`,
+      })
     } catch (error) {
       console.error("Error deleting collaborateur:", error)
-      setError("Impossible de supprimer le collaborateur. Veuillez réessayer plus tard.")
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le collaborateur. Veuillez réessayer plus tard.",
+        variant: "destructive"
+      })
     }
   }
 
@@ -158,6 +141,21 @@ const CollaborateursManagement = () => {
     }))
   }
 
+  const handleFilterChange = (name, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const clearFilters = () => {
+    setFilters({
+      poste: "",
+      sortBy: "recent"
+    })
+    setIsFilterDialogOpen(false)
+  }
+
   const validateForm = () => {
     if (!newCollaborateur.firstName.trim()) {
       setFormError("Le prénom est requis")
@@ -171,12 +169,12 @@ const CollaborateursManagement = () => {
       setFormError("L'email est requis")
       return false
     }
-    if (!newCollaborateur.poste) {
-      setFormError("Le poste est requis")
+    if (!newCollaborateur.password.trim()) {
+      setFormError("Le mot de passe est requis")
       return false
     }
-    if (!newCollaborateur.departement) {
-      setFormError("Le département est requis")
+    if (!newCollaborateur.poste) {
+      setFormError("Le poste est requis")
       return false
     }
     return true
@@ -188,22 +186,46 @@ const CollaborateursManagement = () => {
 
     try {
       const response = await collaborateurService.createCollaborateur(newCollaborateur)
-      setCollaborateurs([...collaborateurs, response])
+      setCollaborateurs([response, ...collaborateurs])
       setIsAddDialogOpen(false)
       setNewCollaborateur({
         firstName: "",
         lastName: "",
         email: "",
+        password: "",
+        role: "COLLABORATEUR",
         poste: "",
-        departement: "",
       })
+      
+      // Sweet Alert success notification
+      Swal.fire({
+        title: 'Succès!',
+        text: `${response.firstName} ${response.lastName} a été ajouté avec succès.`,
+        icon: 'success',
+        timer: 1000,
+        showConfirmButton: false
+      })
+      
+      // Refresh the list after adding
+      fetchCollaborateurs()
     } catch (error) {
       console.error("Error adding collaborateur:", error)
-      setFormError("Impossible d'ajouter le collaborateur. Veuillez réessayer plus tard.")
+      
+      // Check if error is due to duplicate email
+      const isDuplicateEmail = error.response?.data?.message?.toLowerCase().includes('duplicate key value') && 
+                              error.response?.data?.message?.toLowerCase().includes('email');
+
+      if (isDuplicateEmail) {
+        setFormError("Cette adresse email est déjà utilisée.")
+      } else {
+        setFormError("Impossible d'ajouter le collaborateur. Veuillez réessayer plus tard.")
+      }
     }
   }
 
-  if (loading) {
+  const activeFiltersCount = Object.values(filters).filter(value => value !== "").length
+
+  if (loading && collaborateurs.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -233,7 +255,7 @@ const CollaborateursManagement = () => {
         </Button>
       </div>
 
-      <div className="flex items-center space-x-2">
+      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
@@ -244,11 +266,35 @@ const CollaborateursManagement = () => {
             onChange={handleSearch}
           />
         </div>
-      </div>
+        <Button type="submit" variant="outline">
+          <Search className="h-4 w-4 mr-2" />
+          Rechercher
+        </Button>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => setIsFilterDialogOpen(true)}
+          className="relative"
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Filtrer
+          {activeFiltersCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {activeFiltersCount}
+            </span>
+          )}
+        </Button>
+        <Button type="button" variant="ghost" onClick={handleRefresh}>
+          <RefreshCcw className="h-4 w-4" />
+        </Button>
+      </form>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Liste des collaborateurs</CardTitle>
+          <div className="text-sm text-gray-500">
+            {collaborateurs.length} collaborateur{collaborateurs.length !== 1 ? 's' : ''}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -258,20 +304,18 @@ const CollaborateursManagement = () => {
                   <th className="text-left py-3 px-4">Nom</th>
                   <th className="text-left py-3 px-4">Email</th>
                   <th className="text-left py-3 px-4">Poste</th>
-                  <th className="text-left py-3 px-4">Département</th>
-                  <th className="text-left py-3 px-4">Actions</th>
+                  <th className="text-right py-3 px-4">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredCollaborateurs.map((collab) => (
+                {collaborateurs.map((collab) => (
                   <tr key={collab.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">
                       {collab.firstName} {collab.lastName}
                     </td>
                     <td className="py-3 px-4">{collab.email}</td>
                     <td className="py-3 px-4">{collab.poste}</td>
-                    <td className="py-3 px-4">{collab.departement}</td>
-                    <td className="py-3 px-4 flex space-x-2">
+                    <td className="py-3 px-4 flex justify-end space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -287,10 +331,11 @@ const CollaborateursManagement = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredCollaborateurs.length === 0 && (
+                {collaborateurs.length === 0 && (
                   <tr>
                     <td colSpan={5} className="py-6 text-center text-gray-500">
                       Aucun collaborateur trouvé
+                      {activeFiltersCount > 0 && " avec les filtres appliqués"}
                     </td>
                   </tr>
                 )}
@@ -322,8 +367,22 @@ const CollaborateursManagement = () => {
       </Dialog>
 
       {/* Dialog d'ajout de collaborateur */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          // Reset form data when closing the modal
+          setNewCollaborateur({
+            firstName: "",
+            lastName: "",
+            email: "",
+            password: "",
+            role: "COLLABORATEUR",
+            poste: "",
+          });
+          setFormError(""); // Clear any error messages
+        }
+        setIsAddDialogOpen(open);
+      }}>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Ajouter un collaborateur</DialogTitle>
             <DialogDescription>Remplissez le formulaire pour ajouter un nouveau collaborateur.</DialogDescription>
@@ -358,40 +417,31 @@ const CollaborateursManagement = () => {
               <Input id="email" name="email" type="email" value={newCollaborateur.email} onChange={handleInputChange} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="poste">Poste</Label>
-                <Select value={newCollaborateur.poste} onValueChange={(value) => handleSelectChange("poste", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un poste" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {postes.map((poste) => (
-                      <SelectItem key={poste} value={poste}>
-                        {poste}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="departement">Département</Label>
-                <Select
-                  value={newCollaborateur.departement}
-                  onValueChange={(value) => handleSelectChange("departement", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un département" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departements.map((dept) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input 
+                id="password" 
+                name="password" 
+                type="password" 
+                value={newCollaborateur.password} 
+                onChange={handleInputChange}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="poste">Poste</Label>
+              <Select value={newCollaborateur.poste} onValueChange={(value) => handleSelectChange("poste", value)}>
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Sélectionner un poste" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {postes.map((poste) => (
+                    <SelectItem key={poste} value={poste}>
+                      {poste}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -400,6 +450,66 @@ const CollaborateursManagement = () => {
               Annuler
             </Button>
             <Button onClick={handleAddCollaborateur}>Ajouter</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de filtre */}
+      <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Filtrer les collaborateurs</DialogTitle>
+            <DialogDescription>Sélectionnez les critères pour filtrer la liste des collaborateurs.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="poste-filter">Poste</Label>
+              <Select
+                value={filters.poste}
+                onValueChange={(value) => handleFilterChange("poste", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les postes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tous les postes</SelectItem>
+                  {postes.map((poste) => (
+                    <SelectItem key={poste} value={poste}>
+                      {poste}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="sort-filter">Trier par</Label>
+              <Select
+                value={filters.sortBy}
+                onValueChange={(value) => handleFilterChange("sortBy", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tri" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Plus récent</SelectItem>
+                  <SelectItem value="name">Nom (A-Z)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter className="flex justify-between">
+            <Button variant="outline" onClick={clearFilters}>
+              Réinitialiser les filtres
+            </Button>
+            <Button onClick={() => {
+              fetchCollaborateurs();
+              setIsFilterDialogOpen(false);
+            }}>
+              Appliquer
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
