@@ -95,6 +95,7 @@ const FormationsManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Image</TableHead>
                   <TableHead>Titre</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Durée</TableHead>
@@ -105,19 +106,28 @@ const FormationsManagement = () => {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">
+                    <TableCell colSpan={6} className="text-center">
                       Chargement...
                     </TableCell>
                   </TableRow>
                 ) : filteredFormations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">
+                    <TableCell colSpan={6} className="text-center">
                       Aucune formation trouvée
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredFormations.map((formation) => (
                     <TableRow key={formation.id}>
+                      <TableCell>
+                        <div className="w-24 h-16 relative rounded-md overflow-hidden">
+                          <img
+                            src={formation.lienPhoto || "/course_placeholder.png"}
+                            alt={formation.titre}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </TableCell>
                       <TableCell>{formation.titre}</TableCell>
                       <TableCell className="max-w-xs truncate">
                         {formation.description}

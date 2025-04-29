@@ -20,15 +20,31 @@ const FormationCard = ({ formation }) => {
     }
   }
 
+  const getInitials = (title) => {
+    return title
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col overflow-hidden">
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-xl">{formation.title}</CardTitle>
           {getStatusBadge()}
         </div>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <div className="relative w-full h-48">
+        <img
+          src={formation.lienPhoto || "/course_placeholder.png"}
+          alt={formation.title}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <CardContent className="flex-grow pt-6">
         <p className="text-gray-600 mb-4 line-clamp-3">{formation.description}</p>
         <div className="flex items-center text-sm text-gray-500 mb-4">
           <Clock className="h-4 w-4 mr-1" />
