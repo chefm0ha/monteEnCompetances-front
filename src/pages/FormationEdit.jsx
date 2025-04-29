@@ -7,9 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Input } from "../components/ui/input"
 import { Textarea } from "../components/ui/textarea"
 import { Label } from "../components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { formationService } from "../services/formationService"
 import { useToast } from "../components/ui/use-toast"
+import ImageUpload from "../components/ImageUpload"
 
 const FormationEdit = () => {
   const { id } = useParams()
@@ -18,10 +26,22 @@ const FormationEdit = () => {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formation, setFormation] = useState({
-    title: "",
+    titre: "",
     description: "",
-    duration: "",
+    duree: "",
+    type: "",
+    lienPhoto: null,
+    imageFile: null
   })
+  
+  const formationTypes = [
+    "Technique",
+    "Management",
+    "Soft Skills",
+    "Conformité",
+    "Sécurité",
+    "Autre"
+  ]
 
   useEffect(() => {
     if (id) {
@@ -82,6 +102,20 @@ const FormationEdit = () => {
       [name]: value
     }))
   }
+  
+  const handleSelectChange = (value) => {
+    setFormation(prev => ({
+      ...prev,
+      type: value
+    }))
+  }
+  
+  const handleImageSelected = (imageFile) => {
+    setFormation(prev => ({
+      ...prev,
+      imageFile: imageFile
+    }))
+  }
 
   if (loading) {
     return (
@@ -110,11 +144,11 @@ const FormationEdit = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Titre</Label>
+              <Label htmlFor="titre">Titre</Label>
               <Input
-                id="title"
-                name="title"
-                value={formation.title}
+                id="titre"
+                name="titre"
+                value={formation.titre}
                 onChange={handleChange}
                 placeholder="Entrez le titre de la formation"
                 required
@@ -132,19 +166,47 @@ const FormationEdit = () => {
                 required
               />
             </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select
+                  value={formation.type}
+                  onValueChange={handleSelectChange}
+                >
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Sélectionnez un type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {formationTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="duree">Durée (en heures)</Label>
+                <Input
+                  id="duree"
+                  name="duree"
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formation.duree}
+                  onChange={handleChange}
+                  placeholder="Entrez la durée de la formation"
+                  required
+                />
+              </div>
+            </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="duration">Durée (en heures)</Label>
-              <Input
-                id="duration"
-                name="duration"
-                type="number"
-                min="0"
-                step="0.5"
-                value={formation.duration}
-                onChange={handleChange}
-                placeholder="Entrez la durée de la formation"
-                required
+              <ImageUpload 
+                onImageSelected={handleImageSelected}
+                initialImage={formation.lienPhoto}
               />
             </div>
 

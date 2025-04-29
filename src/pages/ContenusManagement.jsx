@@ -114,11 +114,11 @@ const ContenusManagement = () => {
   const getFormationTitle = (moduleId) => {
     const module = modules.find(m => m.id === moduleId)
     const formation = formations.find(f => f.id === module?.formationId)
-    return formation ? formation.title : "Formation inconnue"
+    return formation ? formation.titre : "Formation inconnue"
   }
 
   const filteredContenus = contenus.filter(contenu => {
-    const matchesSearch = contenu.title.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = contenu.title && contenu.title.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesModule = !selectedModule || selectedModule === "all_modules" || contenu.moduleId === selectedModule
     const matchesFormation = !selectedFormation || selectedFormation === "all_formations" || getFormationTitle(contenu.moduleId) === selectedFormation
     return matchesSearch && matchesModule && matchesFormation
@@ -160,7 +160,7 @@ const ContenusManagement = () => {
                 <SelectItem value="all_formations">Toutes les formations</SelectItem>
                 {formations.map((formation) => (
                   <SelectItem key={formation.id} value={formation.id}>
-                    {formation.title}
+                    {formation.titre}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -63,7 +63,7 @@ const FormationsManagement = () => {
   }
 
   const filteredFormations = formations.filter(formation =>
-    formation.title.toLowerCase().includes(searchTerm.toLowerCase())
+    formation.titre && formation.titre.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -118,11 +118,11 @@ const FormationsManagement = () => {
                 ) : (
                   filteredFormations.map((formation) => (
                     <TableRow key={formation.id}>
-                      <TableCell>{formation.title}</TableCell>
+                      <TableCell>{formation.titre}</TableCell>
                       <TableCell className="max-w-xs truncate">
                         {formation.description}
                       </TableCell>
-                      <TableCell>{formation.duration} heures</TableCell>
+                      <TableCell>{formation.duree} heures</TableCell>
                       <TableCell>{formation.modules?.length || 0}</TableCell>
                       <TableCell className="text-right">
                         <Button

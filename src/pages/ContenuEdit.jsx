@@ -240,7 +240,7 @@ const ContenuEdit = () => {
                   <SelectItem value="select_formation">Sélectionnez une formation</SelectItem>
                   {formations.map((formation) => (
                     <SelectItem key={formation.id} value={formation.id}>
-                      {formation.title}
+                      {formation.titre}
                     </SelectItem>
                   ))}
                 </SelectContent>

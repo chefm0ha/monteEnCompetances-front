@@ -201,7 +201,7 @@ const ModuleEdit = () => {
                 <SelectContent>
                   {formations.map((formation) => (
                     <SelectItem key={formation.id} value={formation.id}>
-                      {formation.title}
+                      {formation.titre}
                     </SelectItem>
                   ))}
                 </SelectContent>

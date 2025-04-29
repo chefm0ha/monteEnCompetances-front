@@ -78,14 +78,14 @@ const ModulesManagement = () => {
   }
 
   const filteredModules = modules.filter(module => {
-    const matchesSearch = module.title.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = module.title && module.title.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFormation = !selectedFormation || selectedFormation === "all" || module.formationId === selectedFormation
     return matchesSearch && matchesFormation
   })
 
   const getFormationTitle = (formationId) => {
     const formation = formations.find(f => f.id === formationId)
-    return formation ? formation.title : "Formation inconnue"
+    return formation ? formation.titre : "Formation inconnue"
   }
 
   return (
@@ -124,7 +124,7 @@ const ModulesManagement = () => {
                 <SelectItem value="all">Toutes les formations</SelectItem>
                 {formations.map((formation) => (
                   <SelectItem key={formation.id} value={formation.id}>
-                    {formation.title}
+                    {formation.titre}
                   </SelectItem>
                 ))}
               </SelectContent>
