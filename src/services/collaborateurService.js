@@ -55,6 +55,12 @@ export const collaborateurService = {
       return response.data
     } catch (error) {
       console.error("Error creating collaborateur:", error)
+      
+      // Check if the error is an email conflict (409 status code)
+      if (error.response && error.response.status === 409) {
+        const errorMessage = error.response.data
+        throw { message: errorMessage, emailConflict: true }
+      }
       throw error
     }
   },
@@ -66,6 +72,12 @@ export const collaborateurService = {
       return response.data
     } catch (error) {
       console.error(`Error updating collaborateur with ID ${id}:`, error)
+      
+      // Check if the error is an email conflict (409 status code)
+      if (error.response && error.response.status === 409) {
+        const errorMessage = error.response.data
+        throw { message: errorMessage, emailConflict: true }
+      }
       throw error
     }
   },

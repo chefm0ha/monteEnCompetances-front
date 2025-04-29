@@ -7,10 +7,12 @@ import { Input } from "../components/ui/input"
 import { ScrollArea } from "../components/ui/scroll-area"
 import { MessageCircle, X, Send, Loader2 } from "lucide-react"
 import { useChatbot } from "../context/ChatbotContext"
+import { useAuth } from "../context/AuthContext"
 import { APP_SETTINGS } from "../config"
 
 const ChatbotWidget = () => {
   const { isOpen, messages, loading, toggleChatbot, sendMessage } = useChatbot()
+  const { currentUser } = useAuth()
   const [inputValue, setInputValue] = useState("")
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
@@ -35,6 +37,11 @@ const ChatbotWidget = () => {
       sendMessage(inputValue)
       setInputValue("")
     }
+  }
+
+  // Don't render the chatbot for admin users
+  if (currentUser && currentUser.role === "ADMIN") {
+    return null;
   }
 
   if (!isOpen) {

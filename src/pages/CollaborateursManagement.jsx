@@ -20,13 +20,8 @@ import {
 } from "../components/ui/dialog"
 import { Label } from "../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu"
 import Swal from 'sweetalert2'
+import CollaborateurForm from "../components/CollaborateurForm"
 
 const CollaborateursManagement = () => {
   const { currentUser } = useAuth()
@@ -34,7 +29,8 @@ const CollaborateursManagement = () => {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [collaborateurs, setCollaborateurs] = useState([])
+  const [allCollaborateurs, setAllCollaborateurs] = useState([]) // Store all collaborateurs
+  const [collaborateurs, setCollaborateurs] = useState([]) // Store filtered collaborateurs
   const [searchTerm, setSearchTerm] = useState("")
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [collaborateurToDelete, setCollaborateurToDelete] = useState(null)
@@ -49,7 +45,7 @@ const CollaborateursManagement = () => {
   })
   const [formError, setFormError] = useState("")
   const [filters, setFilters] = useState({
-    poste: "",
+    poste: "all",
     sortBy: "recent"
   })
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false)
@@ -64,25 +60,64 @@ const CollaborateursManagement = () => {
       return
     }
 
-    fetchCollaborateurs()
-  }, [currentUser, navigate, filters])
+    fetchAllCollaborateurs()
+  }, [currentUser, navigate])
+  
+  // Apply filters and search whenever filters or searchTerm changes
+  useEffect(() => {
+    applyFiltersAndSearch()
+  }, [filters, searchTerm, allCollaborateurs])
 
-  const fetchCollaborateurs = async () => {
+  const fetchAllCollaborateurs = async () => {
     try {
       setLoading(true)
-      // Pass the filters to the service
-      const searchParams = {
-        ...filters,
-        search: searchTerm
-      }
-      const data = await collaborateurService.getAllCollaborateurs(searchParams)
-      setCollaborateurs(data)
+      // Fetch all collaborateurs without filters
+      const data = await collaborateurService.getAllCollaborateurs()
+      setAllCollaborateurs(data)
+      setCollaborateurs(data) // Initialize with all data
     } catch (error) {
       console.error("Error fetching collaborateurs:", error)
       setError("Impossible de récupérer la liste des collaborateurs. Veuillez réessayer plus tard.")
     } finally {
       setLoading(false)
     }
+  }
+  
+  // Function to apply filters and search client-side
+  const applyFiltersAndSearch = () => {
+    let filteredData = [...allCollaborateurs]
+    
+    // Apply poste filter
+    if (filters.poste !== "all") {
+      filteredData = filteredData.filter(collab => collab.poste === filters.poste)
+    }
+    
+    // Apply search term
+    if (searchTerm.trim() !== "") {
+      const searchLower = searchTerm.toLowerCase()
+      filteredData = filteredData.filter(collab => 
+        collab.firstName.toLowerCase().includes(searchLower) ||
+        collab.lastName.toLowerCase().includes(searchLower) ||
+        collab.email.toLowerCase().includes(searchLower) ||
+        collab.poste.toLowerCase().includes(searchLower)
+      )
+    }
+    
+    // Apply sorting
+    if (filters.sortBy === "recent") {
+      // Sort by creation date or ID (assuming newer have higher IDs)
+      filteredData.sort((a, b) => b.id - a.id)
+    } else if (filters.sortBy === "name") {
+      // Sort alphabetically by full name
+      filteredData.sort((a, b) => {
+        const nameA = `${a.firstName} ${a.lastName}`.toLowerCase()
+        const nameB = `${b.firstName} ${b.lastName}`.toLowerCase()
+        return nameA.localeCompare(nameB)
+      })
+    }
+    
+    // Update the filtered collaborateurs
+    setCollaborateurs(filteredData)
   }
 
   const handleSearch = (e) => {
@@ -91,11 +126,11 @@ const CollaborateursManagement = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault()
-    fetchCollaborateurs()
+    // No need to call a function as the useEffect will handle it
   }
 
   const handleRefresh = () => {
-    fetchCollaborateurs()
+    fetchAllCollaborateurs()
   }
 
   const handleDeleteClick = (collaborateur) => {
@@ -108,7 +143,7 @@ const CollaborateursManagement = () => {
 
     try {
       await collaborateurService.deleteCollaborateur(collaborateurToDelete.id)
-      setCollaborateurs(collaborateurs.filter((c) => c.id !== collaborateurToDelete.id))
+      setAllCollaborateurs(allCollaborateurs.filter((c) => c.id !== collaborateurToDelete.id))
       setIsDeleteDialogOpen(false)
       setCollaborateurToDelete(null)
       
@@ -150,43 +185,44 @@ const CollaborateursManagement = () => {
 
   const clearFilters = () => {
     setFilters({
-      poste: "",
+      poste: "all",
       sortBy: "recent"
     })
+    setSearchTerm("")
     setIsFilterDialogOpen(false)
   }
 
-  const validateForm = () => {
-    if (!newCollaborateur.firstName.trim()) {
-      setFormError("Le prénom est requis")
-      return false
-    }
-    if (!newCollaborateur.lastName.trim()) {
-      setFormError("Le nom est requis")
-      return false
-    }
-    if (!newCollaborateur.email.trim()) {
-      setFormError("L'email est requis")
-      return false
-    }
-    if (!newCollaborateur.password.trim()) {
-      setFormError("Le mot de passe est requis")
-      return false
-    }
-    if (!newCollaborateur.poste) {
-      setFormError("Le poste est requis")
-      return false
-    }
-    return true
-  }
-
-  const handleAddCollaborateur = async () => {
+  const handleAddCollaborateur = async (formData) => {
     setFormError("")
-    if (!validateForm()) return
+    
+    // Validate the form data
+    if (!formData.firstName.trim()) {
+      setFormError("Le prénom est requis")
+      return
+    }
+    if (!formData.lastName.trim()) {
+      setFormError("Le nom est requis")
+      return
+    }
+    if (!formData.email.trim()) {
+      setFormError("L'email est requis")
+      return
+    }
+    if (!formData.password.trim()) {
+      setFormError("Le mot de passe est requis")
+      return
+    }
+    if (!formData.poste) {
+      setFormError("Le poste est requis")
+      return
+    }
 
     try {
-      const response = await collaborateurService.createCollaborateur(newCollaborateur)
-      setCollaborateurs([response, ...collaborateurs])
+      const response = await collaborateurService.createCollaborateur(formData)
+      
+      // Add the new collaborateur to both lists
+      setAllCollaborateurs([response, ...allCollaborateurs])
+      
       setIsAddDialogOpen(false)
       setNewCollaborateur({
         firstName: "",
@@ -205,15 +241,11 @@ const CollaborateursManagement = () => {
         timer: 1000,
         showConfirmButton: false
       })
-      
-      // Refresh the list after adding
-      fetchCollaborateurs()
     } catch (error) {
       console.error("Error adding collaborateur:", error)
       
       // Check if error is due to duplicate email
-      const isDuplicateEmail = error.response?.data?.message?.toLowerCase().includes('duplicate key value') && 
-                              error.response?.data?.message?.toLowerCase().includes('email');
+      const isDuplicateEmail = error.message.toLowerCase().includes('already exists');
 
       if (isDuplicateEmail) {
         setFormError("Cette adresse email est déjà utilisée.")
@@ -223,7 +255,11 @@ const CollaborateursManagement = () => {
     }
   }
 
-  const activeFiltersCount = Object.values(filters).filter(value => value !== "").length
+  const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+    if (key === 'poste' && value === 'all') return false;
+    if (key === 'sortBy' && value === 'recent') return false;
+    return value !== "";
+  }).length;
 
   if (loading && collaborateurs.length === 0) {
     return (
@@ -255,7 +291,7 @@ const CollaborateursManagement = () => {
         </Button>
       </div>
 
-      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
@@ -266,10 +302,6 @@ const CollaborateursManagement = () => {
             onChange={handleSearch}
           />
         </div>
-        <Button type="submit" variant="outline">
-          <Search className="h-4 w-4 mr-2" />
-          Rechercher
-        </Button>
         <Button 
           type="button" 
           variant="outline" 
@@ -287,7 +319,7 @@ const CollaborateursManagement = () => {
         <Button type="button" variant="ghost" onClick={handleRefresh}>
           <RefreshCcw className="h-4 w-4" />
         </Button>
-      </form>
+      </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -347,7 +379,7 @@ const CollaborateursManagement = () => {
 
       {/* Dialog de confirmation de suppression */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Confirmer la suppression</DialogTitle>
             <DialogDescription>
@@ -388,75 +420,20 @@ const CollaborateursManagement = () => {
             <DialogDescription>Remplissez le formulaire pour ajouter un nouveau collaborateur.</DialogDescription>
           </DialogHeader>
 
-          {formError && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{formError}</AlertDescription>
-            </Alert>
-          )}
-
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">Prénom</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  value={newCollaborateur.firstName}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Nom</Label>
-                <Input id="lastName" name="lastName" value={newCollaborateur.lastName} onChange={handleInputChange} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" value={newCollaborateur.email} onChange={handleInputChange} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Input 
-                id="password" 
-                name="password" 
-                type="password" 
-                value={newCollaborateur.password} 
-                onChange={handleInputChange}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="poste">Poste</Label>
-              <Select value={newCollaborateur.poste} onValueChange={(value) => handleSelectChange("poste", value)}>
-                <SelectTrigger className="bg-white">
-                  <SelectValue placeholder="Sélectionner un poste" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {postes.map((poste) => (
-                    <SelectItem key={poste} value={poste}>
-                      {poste}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Annuler
-            </Button>
-            <Button onClick={handleAddCollaborateur}>Ajouter</Button>
-          </DialogFooter>
+          <CollaborateurForm
+            collaborateur={newCollaborateur}
+            formError={formError}
+            onSubmit={handleAddCollaborateur}
+            onCancel={() => setIsAddDialogOpen(false)}
+            submitLabel="Ajouter"
+            cancelLabel="Annuler"
+          />
         </DialogContent>
       </Dialog>
 
       {/* Dialog de filtre */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Filtrer les collaborateurs</DialogTitle>
             <DialogDescription>Sélectionnez les critères pour filtrer la liste des collaborateurs.</DialogDescription>
@@ -472,10 +449,10 @@ const CollaborateursManagement = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les postes" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Tous les postes</SelectItem>
+                <SelectContent className="bg-white">
+                  <SelectItem value="all" className="cursor-pointer hover:bg-gray-100">Tous les postes</SelectItem>
                   {postes.map((poste) => (
-                    <SelectItem key={poste} value={poste}>
+                    <SelectItem key={poste} value={poste} className="cursor-pointer hover:bg-gray-100">
                       {poste}
                     </SelectItem>
                   ))}
@@ -492,9 +469,9 @@ const CollaborateursManagement = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Tri" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">Plus récent</SelectItem>
-                  <SelectItem value="name">Nom (A-Z)</SelectItem>
+                <SelectContent className="bg-white">
+                  <SelectItem value="recent" className="cursor-pointer hover:bg-gray-100">Plus récent</SelectItem>
+                  <SelectItem value="name" className="cursor-pointer hover:bg-gray-100">Nom (A-Z)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -505,7 +482,6 @@ const CollaborateursManagement = () => {
               Réinitialiser les filtres
             </Button>
             <Button onClick={() => {
-              fetchCollaborateurs();
               setIsFilterDialogOpen(false);
             }}>
               Appliquer

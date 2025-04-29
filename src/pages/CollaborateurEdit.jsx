@@ -8,10 +8,8 @@ import { Alert, AlertDescription } from "../components/ui/alert"
 import { Loader2, AlertCircle, Save, ArrowLeft, Trash2 } from "lucide-react"
 import { collaborateurService } from "../services/collaborateurService"
 import { Button } from "../components/ui/button"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { useToast } from "../hooks/use-toast"
+import Swal from 'sweetalert2'
 import {
   Dialog,
   DialogContent,
@@ -20,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog"
+import CollaborateurForm from "../components/CollaborateurForm"
 
 const CollaborateurEdit = () => {
   const { id } = useParams()
@@ -36,6 +35,8 @@ const CollaborateurEdit = () => {
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
+    role: "COLLABORATEUR",
     poste: "",
   })
 
@@ -77,63 +78,32 @@ const CollaborateurEdit = () => {
     fetchCollaborateur()
   }, [id, currentUser, navigate, toast])
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setCollaborateur((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleSelectChange = (name, value) => {
-    setCollaborateur((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const validateForm = () => {
-    if (!collaborateur.firstName.trim()) {
-      setFormError("Le prénom est requis")
-      return false
-    }
-    if (!collaborateur.lastName.trim()) {
-      setFormError("Le nom est requis")
-      return false
-    }
-    if (!collaborateur.email.trim()) {
-      setFormError("L'email est requis")
-      return false
-    }
-    if (!collaborateur.poste) {
-      setFormError("Le poste est requis")
-      return false
-    }
-    return true
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async (formData) => {
     setFormError("")
 
-    if (!validateForm()) return
+    // Validation is now handled in the form component
 
     try {
       setSaving(true)
       
       if (isNewCollaborateur) {
         // Create new collaborateur
-        const newCollaborateur = await collaborateurService.createCollaborateur(collaborateur)
+        const newCollaborateur = await collaborateurService.createCollaborateur(formData)
         toast({
           title: "Collaborateur créé",
           description: `${newCollaborateur.firstName} ${newCollaborateur.lastName} a été ajouté avec succès.`,
         })
       } else {
         // Update existing collaborateur
-        await collaborateurService.updateCollaborateur(id, collaborateur)
-        toast({
-          title: "Collaborateur mis à jour",
-          description: `Les modifications ont été enregistrées avec succès.`,
+        await collaborateurService.updateCollaborateur(id, formData)
+        
+        // Show SweetAlert success notification for 1 second
+        Swal.fire({
+          title: 'Succès!',
+          text: `${formData.firstName} ${formData.lastName} a été modifié avec succès.`,
+          icon: 'success',
+          timer: 1000,
+          showConfirmButton: false
         })
       }
       
@@ -142,13 +112,22 @@ const CollaborateurEdit = () => {
         navigate("/admin/collaborateurs")
       }, 1000)
     } catch (error) {
+      setSaving(false)
       console.error(`Error ${isNewCollaborateur ? 'creating' : 'updating'} collaborateur:`, error)
-      setFormError(`Impossible de ${isNewCollaborateur ? 'créer' : 'mettre à jour'} le collaborateur. Veuillez réessayer plus tard.`)
-      toast({
-        title: "Erreur",
-        description: `Impossible de ${isNewCollaborateur ? 'créer' : 'mettre à jour'} le collaborateur.`,
-        variant: "destructive",
-      })
+      
+      if (error.emailConflict) {
+        // Set the form error message for the Alert component
+        setFormError(error.message)
+        // No toast for email conflicts, we want to show it in the form only
+        return; // Prevent navigation
+      } else {
+        setFormError(`Impossible de ${isNewCollaborateur ? 'créer' : 'mettre à jour'} le collaborateur. Veuillez réessayer plus tard.`)
+        toast({
+          title: "Erreur",
+          description: `Impossible de ${isNewCollaborateur ? 'créer' : 'mettre à jour'} le collaborateur.`,
+          variant: "destructive",
+        })
+      }
     } finally {
       setSaving(false)
     }
@@ -229,82 +208,25 @@ const CollaborateurEdit = () => {
         </div>
       </div>
 
-      {formError && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{formError}</AlertDescription>
-        </Alert>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Informations du collaborateur</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">Prénom</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    value={collaborateur.firstName}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Nom</Label>
-                  <Input id="lastName" name="lastName" value={collaborateur.lastName} onChange={handleInputChange} />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" value={collaborateur.email} onChange={handleInputChange} />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="poste">Poste</Label>
-                <Select value={collaborateur.poste} onValueChange={(value) => handleSelectChange("poste", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un poste" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {postes.map((poste) => (
-                      <SelectItem key={poste} value={poste}>
-                        {poste}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end space-x-2">
-            <Button variant="outline" type="button" onClick={() => navigate("/admin/collaborateurs")}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={saving}>
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {isNewCollaborateur ? "Création..." : "Enregistrement..."}
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  {isNewCollaborateur ? "Créer" : "Enregistrer"}
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-      </form>
+      <Card>
+        <CardHeader>
+          <CardTitle>Informations du collaborateur</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CollaborateurForm
+            collaborateur={collaborateur}
+            formError={formError}
+            onSubmit={handleSubmit}
+            onCancel={() => navigate("/admin/collaborateurs")}
+            submitLabel={saving ? (isNewCollaborateur ? "Création..." : "Enregistrement...") : (isNewCollaborateur ? "Créer" : "Enregistrer")}
+            cancelLabel="Annuler"
+          />
+        </CardContent>
+      </Card>
 
       {/* Delete confirmation dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white">
           <DialogHeader>
             <DialogTitle>Confirmer la suppression</DialogTitle>
             <DialogDescription>
