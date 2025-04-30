@@ -30,6 +30,24 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
+// A wrapper component that makes any content clickable with proper styling
+const ClickableWrapper = ({ onClick, children, className = "" }) => (
+  <div 
+    onClick={onClick}
+    className={`cursor-pointer transition-all duration-200 hover:shadow-md active:shadow-sm ${className}`}
+    style={{ WebkitTapHighlightColor: 'transparent' }} // Removes the tap highlight on mobile
+    role="button"
+    tabIndex={0}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        onClick();
+      }
+    }}
+  >
+    {children}
+  </div>
+);
+
 const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("new");
@@ -56,6 +74,7 @@ const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) =>
   };
 
   const handleCardClick = () => {
+    console.log(`Navigating to formation: ${formation.id}`);
     navigate(`/formation/${formation.id}`);
   };
 
@@ -74,6 +93,8 @@ const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) =>
 
   const handleSubmitNewModule = (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent any parent click handlers
+    
     // Call the provided onAddModule function with the new module data
     onAddModule(newModule, "create");
     
@@ -88,6 +109,8 @@ const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) =>
 
   const handleLinkModule = (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent any parent click handlers
+    
     if (!selectedModuleId) return;
     
     // Call the provided onAddModule function with the selected module ID
@@ -100,51 +123,53 @@ const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) =>
 
   return (
     <>
-      <Card 
-        className="h-full flex flex-col overflow-hidden cursor-pointer relative hover:shadow-md transition-shadow duration-200"
-        onClick={handleCardClick}
-      >
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-xl">{formation.title}</CardTitle>
-            {getStatusBadge()}
+      <ClickableWrapper onClick={handleCardClick}>
+        <Card className="h-full flex flex-col overflow-hidden relative">
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-xl">{formation.title}</CardTitle>
+              {getStatusBadge()}
+            </div>
+          </CardHeader>
+          <div className="relative w-full h-48">
+            <img
+              src={formation.lienPhoto || "/course_placeholder.png"}
+              alt={formation.title}
+              className="w-full h-full object-cover"
+            />
+            <Button 
+              size="sm" 
+              variant="default" 
+              className="absolute bottom-3 right-3 opacity-90 hover:opacity-100 z-10"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddModuleClick(e);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Module
+            </Button>
           </div>
-        </CardHeader>
-        <div className="relative w-full h-48">
-          <img
-            src={formation.lienPhoto || "/course_placeholder.png"}
-            alt={formation.title}
-            className="w-full h-full object-cover"
-          />
-          <Button 
-            size="sm" 
-            variant="default" 
-            className="absolute bottom-3 right-3 opacity-90 hover:opacity-100"
-            onClick={handleAddModuleClick}
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Module
-          </Button>
-        </div>
-        <CardContent className="flex-grow pt-6">
-          <p className="text-gray-600 mb-4 line-clamp-3">{formation.description}</p>
-          <div className="flex items-center text-sm text-gray-500 mb-4">
-            <Clock className="h-4 w-4 mr-1" />
-            <span>{formation.duration} heures</span>
-          </div>
-          <ProgressBar value={formation.completedModules} total={formation.totalModules} />
-        </CardContent>
-        <CardFooter>
-          <Button className="w-full">
-            {formation.progress === 0 ? "Voir les détails" : "Continuer"}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </CardFooter>
-      </Card>
+          <CardContent className="flex-grow pt-6">
+            <p className="text-gray-600 mb-4 line-clamp-3">{formation.description}</p>
+            <div className="flex items-center text-sm text-gray-500 mb-4">
+              <Clock className="h-4 w-4 mr-1" />
+              <span>{formation.duration} heures</span>
+            </div>
+            <ProgressBar value={formation.completedModules} total={formation.totalModules} />
+          </CardContent>
+          <CardFooter>
+            <Button className="w-full">
+              {formation.progress === 0 ? "Voir les détails" : "Continuer"}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardFooter>
+        </Card>
+      </ClickableWrapper>
 
       {/* Dialog for adding a new module or linking an existing one */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px]" onClick={e => e.stopPropagation()}>
           <DialogHeader>
             <DialogTitle>Ajouter un module à {formation.title}</DialogTitle>
             <DialogDescription>
@@ -170,6 +195,7 @@ const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) =>
                     value={newModule.title}
                     onChange={handleInputChange}
                     placeholder="Entrez le titre du module"
+                    onClick={e => e.stopPropagation()}
                   />
                 </div>
                 
@@ -182,15 +208,13 @@ const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) =>
                     onChange={handleInputChange}
                     placeholder="Entrez la description du module"
                     rows={3}
+                    onClick={e => e.stopPropagation()}
                   />
                 </div>
                 
                 <DialogFooter className="mt-6">
                   <Button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSubmitNewModule(e);
-                    }} 
+                    onClick={handleSubmitNewModule} 
                     disabled={!newModule.title}
                   >
                     <FolderPlus className="h-4 w-4 mr-2" />
@@ -209,7 +233,7 @@ const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) =>
                       value={selectedModuleId} 
                       onValueChange={setSelectedModuleId}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger onClick={e => e.stopPropagation()}>
                         <SelectValue placeholder="Choisir un module" />
                       </SelectTrigger>
                       <SelectContent>
@@ -229,10 +253,7 @@ const FormationCard = ({ formation, onAddModule, allModules = [], navigate }) =>
                 
                 <DialogFooter className="mt-6">
                   <Button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleLinkModule(e);
-                    }}
+                    onClick={handleLinkModule}
                     disabled={!selectedModuleId || availableModules.length === 0}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
