@@ -1,3 +1,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* SweetAlert2 custom styles */
+.swal2-styled {
+  padding: 0.625em 1.1em;
+  transition: box-shadow .1s;
+  box-shadow: 0 0 0 3px transparent;
+  font-weight: 500;
+}
+
+.swal2-styled:focus {
+  outline: none;
+}
+
+.swal2-confirm {
+  background-color: #3085d6 !important;
+  color: #fff !important;
+  border-radius: 0.375rem !important;
+}
+
+.swal2-cancel {
+  background-color: #d33 !important;
+  color: #fff !important;
+  border-radius: 0.375rem !important;
+}
+
+.swal2-confirm:hover {
+  background-color: #2778c4 !important;
+}
+
+.swal2-cancel:hover {
+  background-color: #bf2e1f !important;
+}
+
+/* Select styles */
+[role="option"] {
+  cursor: pointer;
+}
+
+[role="option"]:hover {
+  background-color: #f3f4f6 !important;
+}
+
+[role="option"][data-highlighted] {
+  background-color: #e5e7eb !important;
+  color: black !important;
+}

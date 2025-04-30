@@ -66,7 +66,7 @@ export const moduleService = {
    */
   getModuleById: async (moduleId) => {
     try {
-      const response = await API.get(`/api/admin/modules/${moduleId}`);
+      const response = await API.get(`/api/admin/formations/modules/${moduleId}`);
       return response.data;
     } catch (error) {
       console.error(`Erreur lors de la récupération du module ${moduleId}:`, error);
@@ -77,10 +77,11 @@ export const moduleService = {
   /**
    * Crée un nouveau module
    * 
+   * @param {Object} formationId - L'objet contenant l'ID de la formation
    * @param {Object} moduleData - Les données du module
    * @returns {Promise<Object>} - Le module créé
    */
-  createModule: async (moduleData) => {
+  createModule: async (formationId, moduleData) => {
     try {
       // Préparation du quiz si présent
       let modulePayload = { ...moduleData };
@@ -98,7 +99,7 @@ export const moduleService = {
         }));
       }
 
-      const response = await API.post("/api/admin/modules", modulePayload);
+      const response = await API.post(`/api/admin/formations/${formationId.formationId}/modules`, modulePayload);
       return response.data;
     } catch (error) {
       console.error("Erreur lors de la création du module:", error);
@@ -150,8 +151,8 @@ export const moduleService = {
       // Récupérer d'abord le module pour avoir les URLs des fichiers associés
       const module = await moduleService.getModuleById(moduleId);
       
-      // Supprimer le module
-      const response = await API.delete(`/api/admin/modules/${moduleId}`);
+      // Supprimer le module avec le nouveau endpoint
+      const response = await API.delete(`/api/admin/formations/modules/${moduleId}`);
       
       // Si le module avait des supports avec des fichiers, les supprimer également
       if (module.supports && module.supports.length > 0) {
@@ -164,7 +165,6 @@ export const moduleService = {
       
       return response.data.success;
     } catch (error) {
-      console.error(`Erreur lors de la suppression du module ${moduleId}:`, error);
       throw error;
     }
   },

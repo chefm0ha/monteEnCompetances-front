@@ -42,6 +42,21 @@ export const formationService = {
   },
 
   /**
+   * Récupère toutes les formations avec leur nombre de modules
+   * 
+   * @returns {Promise<Array>} - Liste des formations avec le nombre de modules
+   */
+  getAllFormationsSummary: async () => {
+    try {
+      const response = await API.get("/api/admin/formations/with-module-count");
+      return response.data;
+    } catch (error) {
+      console.error("Erreur lors de la récupération des formations:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Récupère les formations assignées à l'utilisateur connecté
    * 
    * @returns {Promise<Array>} - Liste des formations assignées
@@ -80,66 +95,49 @@ export const formationService = {
    */
   createFormation: async (formationData) => {
     try {
-      // Convert duration to double
-      const duration = parseFloat(formationData.duree);
-      
-      // Check if we have an image file
-      if (formationData.imageFile) {
-        // For image uploads, we need to use the Fetch API directly to properly set Content-Type headers
-        // for each part of the multipart/form-data request
-        
-        const formationObject = {
-          titre: formationData.titre,
-          description: formationData.description,
-          duree: duration,
-          type: formationData.type
-        };
-        
-        // Create form data
-        const formData = new FormData();
-        
-        // We need to create a Blob with the proper Content-Type
-        const formationBlob = new Blob(
-          [JSON.stringify(formationObject)], 
-          { type: 'application/json' }
-        );
-        
-        // Append formation as JSON with proper Content-Type
-        formData.append('formation', formationBlob);
-        
-        // Append image file
-        formData.append('image', formationData.imageFile);
-        
-        // Get token for authorization
-        const token = localStorage.getItem("token");
-        
-        // Use fetch API to make the request with proper headers
-        const response = await fetch(`${API_URL}/api/admin/formations/with-image`, {
-          method: 'POST',
-          body: formData,
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-      } else {
-        // No image, use standard axios JSON request
-        const formationJson = {
-          titre: formationData.titre,
-          description: formationData.description,
-          duree: duration,
-          type: formationData.type
-        };
-        
-        const response = await API.post("/api/admin/formations", formationJson);
-        return response.data;
+      if (!formationData.imageFile) {
+        throw new Error("L'image est obligatoire pour créer une formation");
       }
+
+      // Create form data
+      const formData = new FormData();
+      
+      // Create formation object
+      const formationObject = {
+        titre: formationData.titre,
+        description: formationData.description,
+        type: formationData.type
+      };
+      
+      // Create a Blob with the proper Content-Type
+      const formationBlob = new Blob(
+        [JSON.stringify(formationObject)], 
+        { type: 'application/json' }
+      );
+      
+      // Append formation as JSON with proper Content-Type
+      formData.append('formation', formationBlob);
+      
+      // Append image file
+      formData.append('image', formationData.imageFile);
+      
+      // Get token for authorization
+      const token = localStorage.getItem("token");
+      
+      // Use fetch API to make the request with proper headers
+      const response = await fetch(`${API_URL}/api/admin/formations`, {
+        method: 'POST',
+        body: formData,
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
     } catch (error) {
-      console.error("Erreur lors de la création de la formation:", error);
       throw error;
     }
   },
@@ -153,9 +151,6 @@ export const formationService = {
    */
   updateFormation: async (id, formationData) => {
     try {
-      // Convert duration to double
-      const duration = parseFloat(formationData.duree);
-      
       // Check if we have an image file
       if (formationData.imageFile) {
         // For image uploads, we need to use the Fetch API directly to properly set Content-Type headers
@@ -164,7 +159,6 @@ export const formationService = {
         const formationObject = {
           titre: formationData.titre,
           description: formationData.description,
-          duree: duration,
           type: formationData.type
         };
         
@@ -204,7 +198,6 @@ export const formationService = {
         const formationJson = {
           titre: formationData.titre,
           description: formationData.description,
-          duree: duration,
           type: formationData.type
         };
         
@@ -234,206 +227,39 @@ export const formationService = {
   },
 
   /**
-   * Récupère tous les modules d'une formation
+   * Crée un nouveau module pour une formation
    * 
    * @param {String} formationId - L'ID de la formation
-   * @returns {Promise<Array>} - Liste des modules
+   * @param {Object} moduleData - Les données du module
+   * @returns {Promise<Object>} - Le module créé
    */
-  getModules: async (formationId) => {
+  createModule: async (formationId, moduleData) => {
     try {
-      const response = await API.get(`/api/formations/${formationId}/modules`);
+      const response = await API.post(`/api/admin/formations/${formationId}/modules`, moduleData);
       return response.data;
     } catch (error) {
-      console.error(`Erreur lors de la récupération des modules de la formation ${formationId}:`, error);
+      console.error(`Erreur lors de la création du module pour la formation ${formationId}:`, error);
       throw error;
     }
   },
 
   /**
-   * Récupère un module par son ID
+   * Met à jour l'affectation d'un module à une formation
    * 
-   * @param {String} formationId - L'ID de la formation
    * @param {String} moduleId - L'ID du module
-   * @returns {Promise<Object>} - Le module
+   * @param {String} formationId - L'ID de la nouvelle formation
+   * @returns {Promise<Object>} - Le module mis à jour
    */
-  getModuleById: async (formationId, moduleId) => {
+  updateModuleFormation: async (moduleId, formationId) => {
     try {
-      const response = await API.get(`/api/formations/${formationId}/modules/${moduleId}`);
+      const module = await API.get(`/api/admin/modules/${moduleId}`);
+      module.data.formationId = formationId;
+      
+      const response = await API.put(`/api/admin/modules/${moduleId}`, module.data);
       return response.data;
     } catch (error) {
-      console.error(`Erreur lors de la récupération du module ${moduleId}:`, error);
+      console.error(`Erreur lors de la mise à jour du module ${moduleId}:`, error);
       throw error;
     }
-  },
-
-  /**
-   * Récupère les statistiques des formations
-   * 
-   * @returns {Promise<Object>} - Les statistiques
-   */
-  getFormationsStats: async () => {
-    try {
-      const response = await API.get("/api/formations/stats");
-      return response.data;
-    } catch (error) {
-      console.error("Erreur lors de la récupération des statistiques des formations:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Récupère la progression d'une formation pour l'utilisateur connecté
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @returns {Promise<Object>} - La progression
-   */
-  getFormationProgress: async (formationId) => {
-    try {
-      const response = await API.get(`/api/formations/${formationId}/progress`);
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de la récupération de la progression de la formation ${formationId}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Marque un contenu comme lu
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @param {String} moduleId - L'ID du module
-   * @param {String} contentId - L'ID du contenu
-   * @returns {Promise<Object>} - L'état de progression mis à jour
-   */
-  markContentAsRead: async (formationId, moduleId, contentId) => {
-    try {
-      const response = await API.post(`/api/formations/${formationId}/modules/${moduleId}/contents/${contentId}/read`);
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors du marquage du contenu ${contentId} comme lu:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Récupère le quiz d'un module
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @param {String} moduleId - L'ID du module
-   * @returns {Promise<Object>} - Le quiz
-   */
-  getQuiz: async (formationId, moduleId) => {
-    try {
-      const response = await API.get(`/api/formations/${formationId}/modules/${moduleId}/quiz`);
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de la récupération du quiz du module ${moduleId}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Soumet les réponses d'un quiz
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @param {String} moduleId - L'ID du module
-   * @param {Object} answers - Les réponses au quiz
-   * @returns {Promise<Object>} - Les résultats du quiz
-   */
-  submitQuiz: async (formationId, moduleId, answers) => {
-    try {
-      const response = await API.post(`/api/formations/${formationId}/modules/${moduleId}/quiz/submit`, { answers });
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de la soumission du quiz du module ${moduleId}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Génère un certificat pour une formation complétée
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @returns {Promise<Blob>} - Le certificat au format PDF
-   */
-  generateCertificate: async (formationId) => {
-    try {
-      const response = await API.get(`/api/formations/${formationId}/certificate`, {
-        responseType: "blob",
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de la génération du certificat pour la formation ${formationId}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Assigne une formation à des collaborateurs
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @param {Array} collaborateurIds - Liste des IDs des collaborateurs
-   * @returns {Promise<Object>} - Le résultat de l'assignation
-   */
-  assignFormation: async (formationId, collaborateurIds) => {
-    try {
-      const response = await API.post(`/api/formations/${formationId}/assign`, {
-        collaborateurIds,
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de l'assignation de la formation ${formationId}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Récupère les collaborateurs assignés à une formation
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @returns {Promise<Array>} - Liste des collaborateurs assignés
-   */
-  getAssignedCollaborateurs: async (formationId) => {
-    try {
-      const response = await API.get(`/api/formations/${formationId}/assigned`);
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de la récupération des collaborateurs assignés à la formation ${formationId}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Supprime l'assignation d'une formation à un collaborateur
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @param {String} collaborateurId - L'ID du collaborateur
-   * @returns {Promise<Object>} - Le résultat de la suppression
-   */
-  removeAssignment: async (formationId, collaborateurId) => {
-    try {
-      const response = await API.delete(`/api/formations/${formationId}/assign/${collaborateurId}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de la suppression de l'assignation pour le collaborateur ${collaborateurId}:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Envoie un email de rappel à un collaborateur pour une formation
-   * 
-   * @param {String} formationId - L'ID de la formation
-   * @param {String} collaborateurId - L'ID du collaborateur
-   * @returns {Promise<Object>} - Le résultat de l'envoi
-   */
-  sendReminderEmail: async (formationId, collaborateurId) => {
-    try {
-      const response = await API.post(`/api/formations/${formationId}/remind/${collaborateurId}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de l'envoi du rappel au collaborateur ${collaborateurId}:`, error);
-      throw error;
-    }
-  },
+  }
 };
