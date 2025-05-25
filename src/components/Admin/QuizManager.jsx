@@ -355,19 +355,6 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={quiz.description}
-                onChange={handleChange}
-                placeholder="Décrivez l'objectif de ce quiz"
-                rows={2}
-                disabled={readOnly}
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="seuilReussite" className="flex items-center gap-2">
                 Seuil de réussite (%)
                 <HelpCircle className="h-4 w-4 text-gray-400" />
