@@ -5,14 +5,11 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { FileText, Video, Upload, Loader2, Check } from "lucide-react";
-import { fileService } from "../services/fileService";
+import { FileText, Video } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
 
 const SupportForm = ({ onSave, initialData = null }) => {
   const { toast } = useToast();
-  const [uploading, setUploading] = useState(false);
-  const [fileUploaded, setFileUploaded] = useState(false);
   const [support, setSupport] = useState(
     initialData || {
       type: "PDF",
@@ -25,9 +22,8 @@ const SupportForm = ({ onSave, initialData = null }) => {
   const [file, setFile] = useState(null);
 
   useEffect(() => {
-    // Vérifier si nous avons déjà un lien de fichier
-    if (initialData && initialData.lien && initialData.type !== "TEXT") {
-      setFileUploaded(true);
+    if (initialData) {
+      setSupport(initialData);
     }
   }, [initialData]);
 
@@ -42,7 +38,6 @@ const SupportForm = ({ onSave, initialData = null }) => {
   const handleSelectChange = (name, value) => {
     // Si on change le type, réinitialiser les champs spécifiques au type
     if (name === "type") {
-      setFileUploaded(false);
       setFile(null);
       
       // Réinitialiser le lien sauf si on passe de PDF/VIDEO à TEXT
@@ -92,53 +87,6 @@ const SupportForm = ({ onSave, initialData = null }) => {
       }
       
       setFile(selectedFile);
-      setFileUploaded(false);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Veuillez sélectionner un fichier",
-      });
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      let result;
-      
-      // Utiliser le service d'upload approprié selon le type
-      if (support.type === "PDF") {
-        result = await fileService.uploadPDF(file, "supports");
-      } else if (support.type === "VIDEO") {
-        result = await fileService.uploadVideo(file, "supports");
-      }
-
-      // Mise à jour du lien
-      setSupport((prev) => ({
-        ...prev,
-        lien: result.fileUrl,
-      }));
-      
-      setFileUploaded(true);
-
-      toast({
-        title: "Fichier téléchargé",
-        description: "Le fichier a été téléchargé avec succès.",
-      });
-    } catch (error) {
-      console.error("Erreur lors du téléchargement du fichier:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de télécharger le fichier. Veuillez réessayer plus tard.",
-      });
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -174,20 +122,20 @@ const SupportForm = ({ onSave, initialData = null }) => {
         });
         return;
       }
-    } else {
-      // Pour PDF et VIDEO
-      if (!support.lien) {
+    } else if (!initialData) {
+      // Pour nouveaux PDF et VIDEO
+      if (!file) {
         toast({
           variant: "destructive",
           title: "Erreur",
-          description: "Veuillez télécharger un fichier",
+          description: "Veuillez sélectionner un fichier",
         });
         return;
       }
     }
 
-    // Tout est OK, envoyer les données au composant parent
-    onSave(support);
+    // Passer les données et le fichier au composant parent
+    onSave(support, file);
   };
 
   return (
@@ -260,57 +208,32 @@ const SupportForm = ({ onSave, initialData = null }) => {
                   type="file"
                   accept={support.type === "PDF" ? ".pdf" : "video/*"}
                   onChange={handleFileChange}
-                  disabled={uploading}
                 />
               </div>
 
-              {file && !fileUploaded && (
-                <Button
-                  type="button"
-                  onClick={handleUpload}
-                  disabled={uploading}
-                  className="w-full"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Téléchargement...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Télécharger sur Cloudinary
-                    </>
-                  )}
-                </Button>
-              )}
-
-              {fileUploaded && (
-                <div className="flex items-center p-2 rounded-md bg-green-50 text-green-700">
-                  <Check className="h-5 w-5 mr-2" />
-                  <span>
-                    {support.type === "PDF" ? "Document PDF" : "Vidéo"} téléchargé avec succès
-                  </span>
-                </div>
-              )}
-
-              {support.lien && support.type === "PDF" && (
+              {file && (
                 <div className="p-2 border rounded-md">
                   <div className="flex items-center text-blue-600">
-                    <FileText className="h-5 w-5 mr-2" />
-                    <a href={support.lien} target="_blank" rel="noopener noreferrer" className="underline">
-                      Voir le PDF
-                    </a>
+                    {support.type === "PDF" ? (
+                      <FileText className="h-5 w-5 mr-2" />
+                    ) : (
+                      <Video className="h-5 w-5 mr-2" />
+                    )}
+                    <span>{file.name}</span>
                   </div>
                 </div>
               )}
 
-              {support.lien && support.type === "VIDEO" && (
+              {support.lien && !file && (
                 <div className="p-2 border rounded-md">
-                  <div className="flex items-center text-purple-600">
-                    <Video className="h-5 w-5 mr-2" />
+                  <div className="flex items-center text-blue-600">
+                    {support.type === "PDF" ? (
+                      <FileText className="h-5 w-5 mr-2" />
+                    ) : (
+                      <Video className="h-5 w-5 mr-2" />
+                    )}
                     <a href={support.lien} target="_blank" rel="noopener noreferrer" className="underline">
-                      Voir la vidéo
+                      {support.type === "PDF" ? "Voir le PDF" : "Voir la vidéo"}
                     </a>
                   </div>
                 </div>

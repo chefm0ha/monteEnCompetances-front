@@ -13,8 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select"
-import { Switch } from "../../components/ui/switch"
-import { ArrowLeft, Loader2, Plus, Trash2 } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import { moduleService } from "../../services/moduleService"
 import { formationService } from "../../services/formationService"
 import { useToast } from "../../hooks/use-toast"
@@ -29,11 +28,6 @@ const ModuleEdit = () => {
   const [module, setModule] = useState({
     titre: "",
     formationId: "",
-    hasQuiz: false,
-    quiz: {
-      titre: "",
-      questions: []
-    },
     contents: []
   })
 
@@ -112,55 +106,6 @@ const ModuleEdit = () => {
     }))
   }
 
-  const handleQuizToggle = (checked) => {
-    setModule(prev => ({
-      ...prev,
-      hasQuiz: checked,
-      quiz: checked ? { titre: "", questions: [] } : null
-    }))
-  }
-
-  const handleQuizChange = (e) => {
-    const { name, value } = e.target
-    setModule(prev => ({
-      ...prev,
-      quiz: {
-        ...prev.quiz,
-        [name]: value
-      }
-    }))
-  }
-
-  const addQuestion = () => {
-    setModule(prev => ({
-      ...prev,
-      quiz: {
-        ...prev.quiz,
-        questions: [
-          ...prev.quiz.questions,
-          {
-            id: Date.now(),
-            titre: "",
-            choices: [
-              { text: "", isCorrect: false },
-              { text: "", isCorrect: false }
-            ]
-          }
-        ]
-      }
-    }))
-  }
-
-  const removeQuestion = (questionId) => {
-    setModule(prev => ({
-      ...prev,
-      quiz: {
-        ...prev.quiz,
-        questions: prev.quiz.questions.filter(q => q.id !== questionId)
-      }
-    }))
-  }
-
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -217,79 +162,8 @@ const ModuleEdit = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="hasQuiz"
-                checked={module.hasQuiz}
-                onCheckedChange={handleQuizToggle}
-              />
-              <Label htmlFor="hasQuiz">Inclure un quiz</Label>
-            </div>
           </CardContent>
         </Card>
-
-        {module.hasQuiz && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuration du quiz</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="quizTitre">Titre du quiz</Label>
-                <Input
-                  id="quizTitre"
-                  name="titre"
-                  value={module.quiz.titre}
-                  onChange={handleQuizChange}
-                  placeholder="Entrez le titre du quiz"
-                  required={module.hasQuiz}
-                />
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <Label>Questions</Label>
-                  <Button type="button" variant="outline" onClick={addQuestion}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter une question
-                  </Button>
-                </div>
-
-                {module.quiz.questions.map((question, index) => (
-                  <Card key={question.id}>
-                    <CardContent className="pt-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <Label>Question {index + 1}</Label>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeQuestion(question.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </div>
-                      <Input
-                        value={question.titre}
-                        onChange={(e) => {
-                          const newQuestions = [...module.quiz.questions]
-                          newQuestions[index].titre = e.target.value
-                          handleQuizChange({
-                            target: { name: "questions", value: newQuestions }
-                          })
-                        }}
-                        placeholder="Entrez la question"
-                        className="mb-2"
-                        required={module.hasQuiz}
-                      />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         <div className="flex justify-end gap-4">
           <Button
@@ -309,4 +183,4 @@ const ModuleEdit = () => {
   )
 }
 
-export default ModuleEdit 
+export default ModuleEdit

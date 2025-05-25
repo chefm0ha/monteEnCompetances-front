@@ -68,12 +68,6 @@ const Sidebar = () => {
         label: "Modules",
         path: "/admin/modules",
         adminOnly: true
-      },
-      {
-        icon: <FileText className="h-5 w-5" />,
-        label: "Contenus",
-        path: "/admin/contenus",
-        adminOnly: true
       }
     ] : [
       {

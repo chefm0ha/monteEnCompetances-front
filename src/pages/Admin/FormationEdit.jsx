@@ -26,16 +26,13 @@ import {
   Save, 
   Plus, 
   Trash2, 
-  FileText, 
-  Video, 
-  Eye, 
   Pencil, 
   MoveUp, 
   MoveDown, 
-  CheckCircle, 
-  XCircle, 
   AlertCircle,
-  Loader2
+  Loader2,
+  FileText,
+  CheckCircle
 } from "lucide-react"
 import { formationService } from "../../services/formationService"
 import { moduleService } from "../../services/moduleService"
@@ -49,6 +46,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../components/ui/dialog"
+import ModuleSupportsManager from "../../components/ModuleSupportsManager"
+import QuizManager from "../../components/Admin/QuizManager"
 import Swal from "sweetalert2"
 
 const FormationEdit = () => {
@@ -74,6 +73,10 @@ const FormationEdit = () => {
     formationId: ""
   })
   const [modulesChanged, setModulesChanged] = useState(false)
+  const [selectedModuleIndex, setSelectedModuleIndex] = useState(null)
+  const [selectedModuleSupports, setSelectedModuleSupports] = useState([])
+  const [selectedModuleQuiz, setSelectedModuleQuiz] = useState(null)
+  const [activeFeatureTab, setActiveFeatureTab] = useState("supports")
   
   const formationTypes = [
     "Technique",
@@ -378,6 +381,13 @@ const FormationEdit = () => {
         
         // Remove module from the list
         setModules(modules.filter(m => m.id !== moduleId));
+
+        // If the deleted module was the selected one, reset selection
+        if (selectedModuleIndex !== null && modules[selectedModuleIndex]?.id === moduleId) {
+          setSelectedModuleIndex(null);
+          setSelectedModuleSupports([]);
+          setSelectedModuleQuiz(null);
+        }
       }
     } catch (error) {
       await Swal.fire({
@@ -388,6 +398,82 @@ const FormationEdit = () => {
         customClass: {
           confirmButton: 'swal2-confirm swal2-styled'
         }
+      });
+    }
+  }
+
+  const handleSelectModule = async (index) => {
+    setSelectedModuleIndex(index);
+    const moduleId = modules[index].id;
+    
+    try {
+      // Load the selected module's details
+      const moduleDetails = await moduleService.getModuleById(moduleId);
+      
+      // Set supports
+      setSelectedModuleSupports(moduleDetails.supports || []);
+      
+      // Set quiz
+      if (moduleDetails.quizs && moduleDetails.quizs.length > 0) {
+        setSelectedModuleQuiz(moduleDetails.quizs[0]);
+      } else {
+        setSelectedModuleQuiz(null);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération des détails du module:", error);
+      setSelectedModuleSupports([]);
+      setSelectedModuleQuiz(null);
+      toast({
+        variant: "warning",
+        title: "Avertissement",
+        description: "Impossible de récupérer les détails du module."
+      });
+    }
+  }
+
+  const handleUpdateModuleSupports = async (updatedSupports) => {
+    if (selectedModuleIndex === null) return;
+    
+    // Just update the local state with the updated supports
+    // The actual API calls are now handled by the ModuleSupportsManager component
+    setSelectedModuleSupports(updatedSupports);
+    
+    toast({
+      title: "Contenu mis à jour",
+      description: "Les contenus du module ont été mis à jour avec succès."
+    });
+  };
+
+  const handleUpdateModuleQuiz = async (updatedQuiz) => {
+    if (selectedModuleIndex === null) return;
+    
+    const moduleId = modules[selectedModuleIndex].id;
+    
+    try {
+      // Get current module details first
+      const currentModule = await moduleService.getModuleById(moduleId);
+      
+      // Update the module with the new quiz
+      const updatedModule = {
+        ...currentModule,
+        quizs: [updatedQuiz]
+      };
+      
+      await moduleService.updateModule(moduleId, updatedModule);
+      
+      // Update local state
+      setSelectedModuleQuiz(updatedQuiz);
+      
+      toast({
+        title: "Quiz mis à jour",
+        description: "Le quiz du module a été mis à jour avec succès."
+      });
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du quiz du module:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de mettre à jour le quiz du module."
       });
     }
   }
@@ -425,6 +511,7 @@ const FormationEdit = () => {
         <TabsList>
           <TabsTrigger value="details">Détails</TabsTrigger>
           <TabsTrigger value="modules" disabled={!id}>Modules</TabsTrigger>
+          <TabsTrigger value="contents" disabled={!id || modules.length === 0}>Contenus & Quiz</TabsTrigger>
         </TabsList>
 
         <TabsContent value="details" className="space-y-6 mt-6">
@@ -480,7 +567,7 @@ const FormationEdit = () => {
                 <Label>Image de la formation</Label>
                 <ImageUpload
                   onImageSelected={handleImageSelected}
-                  currentImage={formation.lienPhoto}
+                  initialImage={formation.lienPhoto}
                 />
               </div>
 
@@ -537,9 +624,10 @@ const FormationEdit = () => {
                           
                           <div className="flex flex-wrap gap-2 mt-2">
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {module.contents?.length || 0} contenus
+                              <FileText className="h-3 w-3 mr-1" />
+                              {module.supports?.length || 0} contenus
                             </span>
-                            {module.hasQuiz && (
+                            {module.quizs && module.quizs.length > 0 && (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Quiz
@@ -611,6 +699,67 @@ const FormationEdit = () => {
                     </Button>
                   </div>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="contents" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestion des contenus et quiz</CardTitle>
+              <CardDescription>
+                Sélectionnez un module pour gérer ses contenus et son quiz
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="select-module">Module</Label>
+                <Select
+                  onValueChange={(value) => handleSelectModule(parseInt(value))}
+                  value={selectedModuleIndex !== null ? selectedModuleIndex.toString() : ""}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionnez un module" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modules.map((module, index) => (
+                      <SelectItem key={module.id} value={index.toString()}>
+                        {module.titre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedModuleIndex !== null && (
+                <Tabs 
+                  defaultValue="supports" 
+                  value={activeFeatureTab} 
+                  onValueChange={setActiveFeatureTab}
+                  className="mt-6"
+                >
+                  <TabsList className="w-full">
+                    <TabsTrigger value="supports" className="flex-1">Contenus</TabsTrigger>
+                    <TabsTrigger value="quiz" className="flex-1">Quiz</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="supports" className="mt-4">
+                    <ModuleSupportsManager
+                      moduleId={modules[selectedModuleIndex].id}
+                      initialSupports={selectedModuleSupports}
+                      onSave={handleUpdateModuleSupports}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="quiz" className="mt-4">
+                    <QuizManager
+                      moduleId={modules[selectedModuleIndex].id}
+                      initialQuiz={selectedModuleQuiz}
+                      onSave={handleUpdateModuleQuiz}
+                    />
+                  </TabsContent>
+                </Tabs>
               )}
             </CardContent>
           </Card>

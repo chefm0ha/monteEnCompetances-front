@@ -1,7 +1,7 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "./components/ui/toaster"
-import { AuthProvider, useAuth } from "./context/AuthContext"
+import { AuthProvider } from "./context/AuthContext"
 import { ChatbotProvider } from "./context/ChatbotContext"
 import { SidebarProvider } from "./context/SidebarContext"
 import ProtectedRoute from "./components/shared/ProtectedRoute"
@@ -16,15 +16,12 @@ import FormationsManagement from "./pages/Admin/FormationsManagement"
 import FormationEdit from "./pages/Admin/FormationEdit"
 import ModulesManagement from "./pages/Admin/ModulesManagement"
 import ModuleEdit from "./pages/Admin/ModuleEdit"
-import ContenusManagement from "./pages/Admin/ContenusManagement"
-import ContenuEdit from "./pages/Admin/ContenuEdit"
 import FormationDetails from "./pages/Collaborateur/FormationDetails"
 import ModuleContent from "./pages/Collaborateur/ModuleContent"
 import Quiz from "./pages/Collaborateur/Quiz"
 import Certificate from "./pages/Collaborateur/Certificate"
 import NotFound from "./pages/shared/NotFound"
 import ChatbotWidget from "./components/shared/ChatbotWidget"
-import Layout from "./components/shared/Layout"
 
 function App() {
   return (
@@ -67,11 +64,6 @@ function App() {
                     <Route path="/admin/modules" element={<ModulesManagement />} />
                     <Route path="/admin/modules/new" element={<ModuleEdit />} />
                     <Route path="/admin/modules/:id" element={<ModuleEdit />} />
-                    
-                    {/* Contenus management */}
-                    <Route path="/admin/contenus" element={<ContenusManagement />} />
-                    <Route path="/admin/contenus/new" element={<ContenuEdit />} />
-                    <Route path="/admin/contenus/:id" element={<ContenuEdit />} />
                   </Route>
                 </Route>
 

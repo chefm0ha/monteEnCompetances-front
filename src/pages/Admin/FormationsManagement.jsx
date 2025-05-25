@@ -21,22 +21,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../components/ui/dialog"
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select"
 import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "../../components/ui/tabs"
-import { Plus, Pencil, Trash2, Search, FolderPlus, ExternalLink, LayoutGrid, List, Loader2 } from "lucide-react"
+import { Plus, Pencil, Trash2, Search, FolderPlus, LayoutGrid, List, Loader2 } from "lucide-react"
 import { formationService } from "../../services/formationService"
 import { useToast } from "../../hooks/use-toast"
 import Swal from "sweetalert2"
@@ -49,13 +36,11 @@ const FormationsManagement = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedFormation, setSelectedFormation] = useState(null)
   const [isModuleDialogOpen, setIsModuleDialogOpen] = useState(false)
-  const [activeModuleTab, setActiveModuleTab] = useState("new")
   const [newModule, setNewModule] = useState({
     titre: "",
     description: "",
     formationId: ""
   })
-  const [selectedModuleId, setSelectedModuleId] = useState("")
   const [viewType, setViewType] = useState("table") // 'table' or 'grid'
 
   useEffect(() => {
@@ -133,43 +118,23 @@ const FormationsManagement = () => {
     }))
   }
 
-  const handleAddModule = async (action) => {
+  const handleAddModule = async () => {
     try {
-      if (action === "create") {
-        // Create a new module
-        if (!newModule.titre) {
-          toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: "Le titre du module est obligatoire."
-          })
-          return
-        }
-
-        await formationService.createModule(selectedFormation.id, newModule)
+      // Create a new module
+      if (!newModule.titre) {
         toast({
-          title: "Module créé",
-          description: "Le module a été ajouté à la formation avec succès."
+          variant: "destructive",
+          title: "Erreur",
+          description: "Le titre du module est obligatoire."
         })
-      } else if (action === "link") {
-        // Link an existing module
-        if (!selectedModuleId) {
-          toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: "Veuillez sélectionner un module à lier."
-          })
-          return
-        }
-
-        // Update the module's formationId
-        await formationService.updateModuleFormation(selectedModuleId, selectedFormation.id)
-        
-        toast({
-          title: "Module lié",
-          description: "Le module a été lié à la formation avec succès."
-        })
+        return
       }
+
+      await formationService.createModule(selectedFormation.id, newModule)
+      toast({
+        title: "Module créé",
+        description: "Le module a été ajouté à la formation avec succès."
+      })
 
       // Reset state and close dialog
       setNewModule({
@@ -177,7 +142,6 @@ const FormationsManagement = () => {
         description: "",
         formationId: ""
       })
-      setSelectedModuleId("")
       setIsModuleDialogOpen(false)
       
       // Refresh data to get updated module counts
@@ -379,7 +343,7 @@ const FormationsManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog for adding a new module or linking an existing one */}
+      {/* Dialog for adding a new module */}
       <Dialog open={isModuleDialogOpen} onOpenChange={setIsModuleDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -387,84 +351,44 @@ const FormationsManagement = () => {
               Ajouter un module à {selectedFormation?.titre}
             </DialogTitle>
             <DialogDescription>
-              Créez un nouveau module ou liez un module existant à cette formation
+              Créez un nouveau module pour cette formation
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue="new" value={activeModuleTab} onValueChange={setActiveModuleTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="new">Nouveau module</TabsTrigger>
-              <TabsTrigger value="existing">Module existant</TabsTrigger>
-            </TabsList>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="titre">Titre</Label>
+              <Input
+                id="titre"
+                name="titre"
+                value={newModule.titre}
+                onChange={handleInputChange}
+                placeholder="Entrez le titre du module"
+              />
+            </div>
             
-            <TabsContent value="new" className="py-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="titre">Titre</Label>
-                  <Input
-                    id="titre"
-                    name="titre"
-                    value={newModule.titre}
-                    onChange={handleInputChange}
-                    placeholder="Entrez le titre du module"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={newModule.description}
-                    onChange={handleInputChange}
-                    placeholder="Entrez la description du module"
-                    rows={3}
-                  />
-                </div>
-                
-                <DialogFooter className="mt-6">
-                  <Button 
-                    onClick={() => handleAddModule("create")} 
-                    disabled={!newModule.titre}
-                  >
-                    <FolderPlus className="h-4 w-4 mr-2" />
-                    Créer et ajouter
-                  </Button>
-                </DialogFooter>
-              </div>
-            </TabsContent>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={newModule.description}
+                onChange={handleInputChange}
+                placeholder="Entrez la description du module"
+                rows={3}
+              />
+            </div>
             
-            <TabsContent value="existing" className="py-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="moduleId">Sélectionner un module</Label>
-                  <Select 
-                    value={selectedModuleId} 
-                    onValueChange={setSelectedModuleId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisir un module" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {/* This would be populated with available modules */}
-                      <SelectItem value="module1">Module 1</SelectItem>
-                      <SelectItem value="module2">Module 2</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <DialogFooter className="mt-6">
-                  <Button 
-                    onClick={() => handleAddModule("link")}
-                    disabled={!selectedModuleId}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Lier à la formation
-                  </Button>
-                </DialogFooter>
-              </div>
-            </TabsContent>
-          </Tabs>
+            <DialogFooter className="mt-6">
+              <Button 
+                onClick={handleAddModule} 
+                disabled={!newModule.titre}
+              >
+                <FolderPlus className="h-4 w-4 mr-2" />
+                Créer et ajouter
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
