@@ -49,6 +49,7 @@ import {
 import ModuleSupportsManager from "../../components/ModuleSupportsManager"
 import QuizManager from "../../components/Admin/QuizManager"
 import Swal from "sweetalert2"
+import { quizService } from "../../services/quizService";
 
 const FormationEdit = () => {
   const { id } = useParams()
@@ -403,33 +404,40 @@ const FormationEdit = () => {
   }
 
   const handleSelectModule = async (index) => {
-    setSelectedModuleIndex(index);
-    const moduleId = modules[index].id;
+  setSelectedModuleIndex(index);
+  const moduleId = modules[index].id;
+  
+  try {
+    // Get module details for supports
+    const moduleDetails = await moduleService.getModuleById(moduleId);
+    console.log("Module details:", moduleDetails);
+    setSelectedModuleSupports(moduleDetails.supports || []);
     
+    // Get quizzes with complete data (questions and choices included) - ADD THIS
     try {
-      // Load the selected module's details
-      const moduleDetails = await moduleService.getModuleById(moduleId);
+      const quizzesWithQuestions = await quizService.getQuizzesByModule(moduleId);
       
-      // Set supports
-      setSelectedModuleSupports(moduleDetails.supports || []);
-      
-      // Set quiz
-      if (moduleDetails.quizs && moduleDetails.quizs.length > 0) {
-        setSelectedModuleQuiz(moduleDetails.quizs[0]);
+      if (quizzesWithQuestions && quizzesWithQuestions.length > 0) {
+        setSelectedModuleQuiz(quizzesWithQuestions[0]); // First quiz with complete data
       } else {
         setSelectedModuleQuiz(null);
       }
-    } catch (error) {
-      console.error("Erreur lors de la récupération des détails du module:", error);
-      setSelectedModuleSupports([]);
+    } catch (quizError) {
+      console.error("Error fetching quiz data:", quizError);
       setSelectedModuleQuiz(null);
-      toast({
-        variant: "warning",
-        title: "Avertissement",
-        description: "Impossible de récupérer les détails du module."
-      });
     }
+    
+  } catch (error) {
+    console.error("Erreur lors de la récupération des détails du module:", error);
+    setSelectedModuleSupports([]);
+    setSelectedModuleQuiz(null);
+    toast({
+      variant: "warning",
+      title: "Avertissement",
+      description: "Impossible de récupérer les détails du module."
+    });
   }
+};
 
   const handleUpdateModuleSupports = async (updatedSupports) => {
     if (selectedModuleIndex === null) return;
@@ -445,38 +453,25 @@ const FormationEdit = () => {
   };
 
   const handleUpdateModuleQuiz = async (updatedQuiz) => {
-    if (selectedModuleIndex === null) return;
+  if (selectedModuleIndex === null) return;
+  
+  try {
+    // Just refresh the module selection to reload all data
+    await handleSelectModule(selectedModuleIndex);
     
-    const moduleId = modules[selectedModuleIndex].id;
-    
-    try {
-      // Get current module details first
-      const currentModule = await moduleService.getModuleById(moduleId);
-      
-      // Update the module with the new quiz
-      const updatedModule = {
-        ...currentModule,
-        quizs: [updatedQuiz]
-      };
-      
-      await moduleService.updateModule(moduleId, updatedModule);
-      
-      // Update local state
-      setSelectedModuleQuiz(updatedQuiz);
-      
-      toast({
-        title: "Quiz mis à jour",
-        description: "Le quiz du module a été mis à jour avec succès."
-      });
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du quiz du module:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de mettre à jour le quiz du module."
-      });
-    }
+    toast({
+      title: "Quiz mis à jour",
+      description: "Le quiz du module a été mis à jour avec succès."
+    });
+  } catch (error) {
+    console.error("Error updating quiz:", error);
+    toast({
+      variant: "destructive",
+      title: "Erreur",
+      description: "Erreur lors de la mise à jour du quiz."
+    });
   }
+};
 
   if (loading) {
     return (
