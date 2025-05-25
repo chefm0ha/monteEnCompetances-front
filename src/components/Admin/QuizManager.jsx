@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { Button } from "../../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
-import { Textarea } from "../../components/ui/textarea";
-import { Label } from "../../components/ui/label";
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { Badge } from "../../components/ui/badge";
-import { Switch } from "../../components/ui/switch";
-import { Alert, AlertDescription } from "../../components/ui/alert";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "../ui/card";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Badge } from "../ui/badge";
+import { Switch } from "../ui/switch";
+import { Alert, AlertDescription } from "../ui/alert";
 import { 
   AlertCircle, 
   Plus, 
@@ -17,35 +17,36 @@ import {
   Save, 
   Loader2, 
   HelpCircle,
-  Eye
+  Eye,
+  X
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "../../hooks/use-toast";
+import { quizService } from "../../services/quizService";
 import QuizPreviewModal from "./QuizPreviewModal";
 
 const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false }) => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [quiz, setQuiz] = useState(
-    initialQuiz || {
+    initialQuiz ? quizService.transformQuizFromBackend(initialQuiz) : {
       titre: "Quiz d'évaluation",
       description: "Évaluez vos connaissances sur ce module",
       moduleId: moduleId,
-      seuilReussite: 70, // Pourcentage de réussite requis
+      seuilReussite: 70,
       questions: [],
     }
   );
   const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
-    // Si on reçoit un nouveau moduleId, mettre à jour
     if (moduleId && (!quiz.moduleId || quiz.moduleId !== moduleId)) {
       setQuiz(prev => ({ ...prev, moduleId }));
     }
 
-    // Si on reçoit un nouveau quiz, mettre à jour
     if (initialQuiz) {
-      setQuiz(initialQuiz);
+      setQuiz(quizService.transformQuizFromBackend(initialQuiz));
     }
   }, [moduleId, initialQuiz]);
 
@@ -71,13 +72,13 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
 
   const addQuestion = () => {
     const newQuestion = {
-      id: Date.now().toString(),
+      id: `temp_${Date.now()}`, // Temporary ID for frontend
       contenu: "",
       choix: [
-        { id: `${Date.now()}-1`, contenu: "", estCorrect: true },
-        { id: `${Date.now()}-2`, contenu: "", estCorrect: false },
-        { id: `${Date.now()}-3`, contenu: "", estCorrect: false },
-        { id: `${Date.now()}-4`, contenu: "", estCorrect: false },
+        { id: `temp_${Date.now()}_1`, contenu: "", estCorrect: true },
+        { id: `temp_${Date.now()}_2`, contenu: "", estCorrect: false },
+        { id: `temp_${Date.now()}_3`, contenu: "", estCorrect: false },
+        { id: `temp_${Date.now()}_4`, contenu: "", estCorrect: false },
       ],
     };
 
@@ -165,7 +166,7 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
   };
 
   const addChoice = (questionId) => {
-    const newChoiceId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const newChoiceId = `temp_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     
     setQuiz((prev) => ({
       ...prev,
@@ -184,12 +185,10 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
   };
 
   const removeChoice = (questionId, choiceId) => {
-    // Vérifier si le choix à supprimer est le choix correct
     const question = quiz.questions.find(q => q.id === questionId);
     const choiceToRemove = question?.choix.find(c => c.id === choiceId);
     const isCorrectChoice = choiceToRemove?.estCorrect || false;
     
-    // S'assurer qu'on a au moins 2 choix
     if (question.choix.length <= 2) {
       toast({
         variant: "destructive",
@@ -199,7 +198,6 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
       return;
     }
     
-    // Filtrer les choix
     setQuiz((prev) => ({
       ...prev,
       questions: prev.questions.map((q) =>
@@ -212,10 +210,8 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
       ),
     }));
     
-    // Si le choix supprimé était correct, marquer le premier choix restant comme correct
     if (isCorrectChoice) {
       setTimeout(() => {
-        // Récupérer la question mise à jour
         const updatedQuestion = quiz.questions.find(q => q.id === questionId);
         if (updatedQuestion && updatedQuestion.choix.length > 0) {
           handleCorrectAnswerChange(questionId, updatedQuestion.choix[0].id);
@@ -225,7 +221,6 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
   };
 
   const validateQuiz = () => {
-    // Validation de base
     if (!quiz.titre.trim()) {
       setError("Le titre du quiz est obligatoire");
       return false;
@@ -236,7 +231,6 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
       return false;
     }
     
-    // Valider chaque question
     for (const question of quiz.questions) {
       if (!question.contenu.trim()) {
         setError("Toutes les questions doivent avoir un contenu");
@@ -248,7 +242,6 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
         return false;
       }
       
-      // Vérifier le contenu de chaque choix
       for (const choix of question.choix) {
         if (!choix.contenu.trim()) {
           setError("Tous les choix de réponse doivent avoir un contenu");
@@ -256,7 +249,6 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
         }
       }
       
-      // Vérifier qu'il y a une réponse correcte
       const hasCorrectAnswer = question.choix.some(c => c.estCorrect);
       if (!hasCorrectAnswer) {
         setError("Chaque question doit avoir une réponse correcte");
@@ -267,7 +259,7 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError(null);
     
     if (!validateQuiz()) {
@@ -277,28 +269,31 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
     setSaving(true);
     
     try {
-      // Préparer les données pour le quiz
-      // S'assurer que tous les IDs sont des chaînes de caractères
-      const preparedQuiz = {
-        ...quiz,
-        questions: quiz.questions.map(question => ({
-          ...question,
-          id: question.id.toString(),
-          choix: question.choix.map(choix => ({
-            ...choix,
-            id: choix.id.toString()
-          }))
-        }))
-      };
+      const backendQuizData = quizService.transformQuizForBackend(quiz);
+      let savedQuiz;
+
+      if (quiz.id && !quiz.id.toString().startsWith('temp_')) {
+        // Update existing quiz
+        savedQuiz = await quizService.updateCompleteQuiz(quiz.id, backendQuizData);
+      } else {
+        // Create new quiz
+        savedQuiz = await quizService.createCompleteQuiz(moduleId, backendQuizData);
+      }
       
-      onSave(preparedQuiz);
+      // Transform back to frontend format and update state
+      const transformedQuiz = quizService.transformQuizFromBackend(savedQuiz);
+      setQuiz(transformedQuiz);
+      
+      if (onSave) {
+        onSave(savedQuiz);
+      }
       
       toast({
         title: "Quiz sauvegardé",
         description: "Le quiz a été sauvegardé avec succès."
       });
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde du quiz:", error);
+      console.error("Error saving quiz:", error);
       setError("Une erreur est survenue lors de la sauvegarde du quiz.");
       
       toast({
@@ -316,6 +311,16 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
     return Math.round(100 / quiz.questions.length);
   };
 
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -325,13 +330,16 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
             Configurez les questions et réponses pour évaluer les connaissances
           </CardDescription>
         </div>
-        {!readOnly && quiz.questions.length > 0 && (
-          <Button variant="outline" onClick={() => setPreviewOpen(true)}>
-            <Eye className="h-4 w-4 mr-2" />
-            Aperçu
-          </Button>
-        )}
+        <div className="flex items-center space-x-2">
+          {quiz.questions.length > 0 && (
+            <Button variant="outline" onClick={() => setPreviewOpen(true)}>
+              <Eye className="h-4 w-4 mr-2" />
+              Aperçu
+            </Button>
+          )}
+        </div>
       </CardHeader>
+
       <CardContent>
         {error && (
           <Alert variant="destructive" className="mb-4">
@@ -559,6 +567,7 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
           </div>
         </div>
       </CardContent>
+
       {!readOnly && (
         <CardFooter className="flex justify-end">
           <Button type="button" onClick={handleSubmit} disabled={saving}>
