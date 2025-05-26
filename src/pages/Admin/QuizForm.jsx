@@ -19,6 +19,7 @@ import { useToast } from "../../hooks/use-toast";
 import { quizService } from "../../services/quizService";
 import QuizManager from "./QuizManager";
 import QuizPreviewModal from "./QuizPreviewModal";
+import Swal from 'sweetalert2'
 
 const QuizForm = ({ moduleId, onQuizSaved = null, readOnly = false }) => {
   const { toast } = useToast();
@@ -94,16 +95,20 @@ const QuizForm = ({ moduleId, onQuizSaved = null, readOnly = false }) => {
       await fetchQuizzes();
       setCurrentQuiz(null);
       
-      toast({
-        title: "Quiz supprimé",
-        description: "Le quiz a été supprimé avec succès."
+      Swal.fire({
+        title: 'Succès!',
+        text: 'Le quiz a été supprimé avec succès.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       });
     } catch (error) {
       console.error("Error deleting quiz:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de supprimer le quiz."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de supprimer le quiz.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     } finally {
       setSaving(false);

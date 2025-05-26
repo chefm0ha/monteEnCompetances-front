@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "../../components/ui/breadcrumb"
 import { Loader2, AlertCircle, ArrowLeft, Download, Printer } from "lucide-react"
 import { APP_SETTINGS } from "../../config"
+import Swal from 'sweetalert2'
 
 const Certificate = () => {
   const { formationId } = useParams()
@@ -54,7 +55,12 @@ const Certificate = () => {
       document.body.removeChild(a)
     } catch (error) {
       console.error("Error downloading certificate:", error)
-      setError("Impossible de télécharger le certificat. Veuillez réessayer plus tard.")
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de télécharger le certificat. Veuillez réessayer plus tard.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      })
     }
   }
 

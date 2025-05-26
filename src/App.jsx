@@ -9,6 +9,7 @@ import AdminRoute from "./components/Admin/AdminRoute"
 import UserRoute from "./components/shared/UserRoute"
 import Login from "./pages/shared/Login"
 import Dashboard from "./pages/shared/Dashboard"
+import Profile from "./pages/shared/Profile"
 import AdminDashboard from "./pages/Admin/AdminDashboard"
 import CollaborateursManagement from "./pages/Admin/CollaborateursManagement"
 import CollaborateurEdit from "./pages/Admin/CollaborateurEdit"
@@ -37,6 +38,9 @@ function App() {
 
                 {/* Protected routes with Layout (including sidebar) */}
                 <Route element={<ProtectedRoute />}>
+                  {/* Shared routes for both admin and users */}
+                  <Route path="/profile" element={<Profile />} />
+                  
                   {/* User routes */}
                   <Route element={<UserRoute />}>
                     <Route path="/dashboard" element={<Dashboard />} />

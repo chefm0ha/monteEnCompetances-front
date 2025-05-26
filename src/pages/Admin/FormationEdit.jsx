@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "../../components/ui/button"
@@ -36,7 +35,7 @@ import {
 } from "lucide-react"
 import { formationService } from "../../services/formationService"
 import { moduleService } from "../../services/moduleService"
-import { useToast } from "../../hooks/use-toast"
+import Swal from 'sweetalert2'
 import ImageUpload from "../../components/shared/ImageUpload"
 import { 
   Dialog,
@@ -48,13 +47,11 @@ import {
 } from "../../components/ui/dialog"
 import ModuleSupportsManager from "../../components/ModuleSupportsManager"
 import QuizManager from "../../components/Admin/QuizManager"
-import Swal from "sweetalert2"
 import { quizService } from "../../services/quizService";
 
 const FormationEdit = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [loading, setLoading] = useState(!!id)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState("details")

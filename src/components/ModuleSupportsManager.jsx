@@ -23,10 +23,9 @@ import {
 import { Alert, AlertDescription } from "./ui/alert";
 import { AlertCircle } from "lucide-react";
 import { contenuService } from "../services/contenuService";
-import { useToast } from "../hooks/use-toast";
+import Swal from 'sweetalert2';
 
 const ModuleSupportsManager = ({ moduleId, initialSupports = [], onSave, readOnly = false }) => {
-  const { toast } = useToast();
   const [supports, setSupports] = useState(initialSupports);
   const [currentSupport, setCurrentSupport] = useState({
     type: "PDF",
@@ -84,28 +83,31 @@ const ModuleSupportsManager = ({ moduleId, initialSupports = [], onSave, readOnl
       
       // Validation du type de fichier
       if (currentSupport.type === "PDF" && selectedFile.type !== "application/pdf") {
-        toast({
-          variant: "destructive",
-          title: "Type de fichier incorrect",
-          description: "Veuillez sélectionner un fichier PDF valide",
+        Swal.fire({
+          title: 'Type de fichier incorrect',
+          text: 'Veuillez sélectionner un fichier PDF valide',
+          icon: 'error',
+          confirmButtonText: 'OK'
         });
         return;
       }
       
       if (currentSupport.type === "VIDEO" && !selectedFile.type.startsWith("video/")) {
-        toast({
-          variant: "destructive",
-          title: "Type de fichier incorrect",
-          description: "Veuillez sélectionner un fichier vidéo valide",
+        Swal.fire({
+          title: 'Type de fichier incorrect',
+          text: 'Veuillez sélectionner un fichier vidéo valide',
+          icon: 'error',
+          confirmButtonText: 'OK'
         });
         return;
       }
       
       if (currentSupport.type === "TEXT" && !selectedFile.type.startsWith("text/")) {
-        toast({
-          variant: "destructive",
-          title: "Type de fichier incorrect",
-          description: "Veuillez sélectionner un fichier texte valide (.txt, .md, etc.)",
+        Swal.fire({
+          title: 'Type de fichier incorrect',
+          text: 'Veuillez sélectionner un fichier texte valide (.txt, .md, etc.)',
+          icon: 'error',
+          confirmButtonText: 'OK'
         });
         return;
       }
@@ -169,9 +171,12 @@ const ModuleSupportsManager = ({ moduleId, initialSupports = [], onSave, readOnl
       resetForm();
       setIsAdding(false);
       
-      toast({
-        title: "Contenu ajouté",
-        description: "Le contenu a été ajouté avec succès.",
+      Swal.fire({
+        title: 'Succès!',
+        text: 'Le contenu a été ajouté avec succès.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       });
     } catch (error) {
       console.error("Erreur lors de l'ajout du contenu:", error);
@@ -219,9 +224,12 @@ const ModuleSupportsManager = ({ moduleId, initialSupports = [], onSave, readOnl
       setIsEditing(false);
       setEditIndex(null);
       
-      toast({
-        title: "Contenu mis à jour",
-        description: "Le contenu a été mis à jour avec succès.",
+      Swal.fire({
+        title: 'Succès!',
+        text: 'Le contenu a été mis à jour avec succès.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       });
     } catch (error) {
       console.error("Erreur lors de la mise à jour du contenu:", error);
@@ -232,8 +240,19 @@ const ModuleSupportsManager = ({ moduleId, initialSupports = [], onSave, readOnl
   };
 
   const handleDeleteSupport = async (index) => {
-    // Ask for confirmation
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce contenu ?")) {
+    // Ask for confirmation with SweetAlert2
+    const result = await Swal.fire({
+      title: 'Êtes-vous sûr?',
+      text: 'Vous ne pourrez pas revenir en arrière!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Oui, supprimer!',
+      cancelButtonText: 'Annuler'
+    });
+
+    if (!result.isConfirmed) {
       return;
     }
 
@@ -255,16 +274,20 @@ const ModuleSupportsManager = ({ moduleId, initialSupports = [], onSave, readOnl
         onSave(updatedSupports);
       }
       
-      toast({
-        title: "Contenu supprimé",
-        description: "Le contenu a été supprimé avec succès.",
+      Swal.fire({
+        title: 'Supprimé!',
+        text: 'Le contenu a été supprimé avec succès.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       });
     } catch (error) {
       console.error("Erreur lors de la suppression du contenu:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression du contenu.",
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Une erreur est survenue lors de la suppression du contenu.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     } finally {
       setLoading(false);

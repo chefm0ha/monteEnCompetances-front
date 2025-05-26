@@ -23,11 +23,10 @@ import {
 import { Plus, Pencil, Trash2, Search, BookOpen } from "lucide-react"
 import { moduleService } from "../../services/moduleService"
 import { formationService } from "../../services/formationService"
-import { useToast } from "../../hooks/use-toast"
+import Swal from 'sweetalert2'
 
 const ModulesManagement = () => {
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [modules, setModules] = useState([])
   const [formations, setFormations] = useState([])
   const [loading, setLoading] = useState(true)
@@ -48,10 +47,10 @@ const ModulesManagement = () => {
       setModules(modulesData)
       setFormations(formationsData)
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger les données."
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: 'Impossible de charger les données.',
       })
     } finally {
       setLoading(false)
@@ -59,19 +58,31 @@ const ModulesManagement = () => {
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce module ?")) {
+    const result = await Swal.fire({
+      title: 'Êtes-vous sûr ?',
+      text: "Vous ne pourrez pas revenir en arrière !",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Oui, supprimer !',
+      cancelButtonText: 'Annuler'
+    })
+
+    if (result.isConfirmed) {
       try {
         await moduleService.deleteModule(id)
-        toast({
-          title: "Succès",
-          description: "Module supprimé avec succès."
-        })
+        Swal.fire(
+          'Supprimé !',
+          'Le module a été supprimé avec succès.',
+          'success'
+        )
         fetchData()
       } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Impossible de supprimer le module."
+        Swal.fire({
+          icon: 'error',
+          title: 'Erreur',
+          text: 'Impossible de supprimer le module.',
         })
       }
     }

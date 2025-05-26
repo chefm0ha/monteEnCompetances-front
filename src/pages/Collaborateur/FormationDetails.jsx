@@ -10,6 +10,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "../../components/ui/
 import { Loader2, AlertCircle, Download, ArrowLeft, Clock } from "lucide-react"
 import ProgressBar from "../../components/shared/ProgressBar"
 import ModuleAccordion from "../../components/Collaborateur/ModuleAccordion"
+import Swal from 'sweetalert2'
 
 const FormationDetails = () => {
   const { formationId } = useParams()
@@ -40,22 +41,16 @@ const FormationDetails = () => {
 
   const handleDownloadCertificate = async () => {
     try {
-      const certificateBlob = await formationService.generateCertificate(formationId)
-
-      // Create a download link
-      const url = window.URL.createObjectURL(certificateBlob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `certificat_${formation.title.replace(/\s+/g, "_")}.pdf`
-      document.body.appendChild(a)
-      a.click()
-
-      // Clean up
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (error) {
       console.error("Error downloading certificate:", error)
-      setError("Impossible de télécharger le certificat. Veuillez réessayer plus tard.")
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de télécharger le certificat. Veuillez réessayer plus tard.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      })
     }
   }
 

@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Loader2, AlertCircle, Save, ArrowLeft, Trash2 } from "lucide-react"
 import { collaborateurService } from "../../services/collaborateurService"
 import { Button } from "../../components/ui/button"
-import { useToast } from "../../hooks/use-toast"
 import Swal from 'sweetalert2'
 import {
   Dialog,
@@ -24,7 +23,6 @@ const CollaborateurEdit = () => {
   const { id } = useParams()
   const { currentUser } = useAuth()
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -65,10 +63,11 @@ const CollaborateurEdit = () => {
       } catch (error) {
         console.error(`Error fetching collaborateur with ID ${id}:`, error)
         setError("Impossible de récupérer les informations du collaborateur. Veuillez réessayer plus tard.")
-        toast({
+        Swal.fire({
           title: "Erreur",
-          description: "Impossible de récupérer les informations du collaborateur.",
-          variant: "destructive",
+          text: "Impossible de récupérer les informations du collaborateur.",
+          icon: "error",
+          confirmButtonText: "OK",
         })
       } finally {
         setLoading(false)
@@ -76,7 +75,7 @@ const CollaborateurEdit = () => {
     }
 
     fetchCollaborateur()
-  }, [id, currentUser, navigate, toast])
+  }, [id, currentUser, navigate])
 
   const handleSubmit = async (formData) => {
     setFormError("")
@@ -89,9 +88,12 @@ const CollaborateurEdit = () => {
       if (isNewCollaborateur) {
         // Create new collaborateur
         const newCollaborateur = await collaborateurService.createCollaborateur(formData)
-        toast({
-          title: "Collaborateur créé",
-          description: `${newCollaborateur.firstName} ${newCollaborateur.lastName} a été ajouté avec succès.`,
+        Swal.fire({
+          title: 'Succès!',
+          text: `${newCollaborateur.firstName} ${newCollaborateur.lastName} a été ajouté avec succès.`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
         })
       } else {
         // Update existing collaborateur
@@ -122,10 +124,11 @@ const CollaborateurEdit = () => {
         return; // Prevent navigation
       } else {
         setFormError(`Impossible de ${isNewCollaborateur ? 'créer' : 'mettre à jour'} le collaborateur. Veuillez réessayer plus tard.`)
-        toast({
-          title: "Erreur",
-          description: `Impossible de ${isNewCollaborateur ? 'créer' : 'mettre à jour'} le collaborateur.`,
-          variant: "destructive",
+        Swal.fire({
+          title: 'Erreur',
+          text: `Impossible de ${isNewCollaborateur ? 'créer' : 'mettre à jour'} le collaborateur.`,
+          icon: 'error',
+          confirmButtonText: 'OK'
         })
       }
     } finally {
@@ -143,9 +146,12 @@ const CollaborateurEdit = () => {
       await collaborateurService.deleteCollaborateur(id)
       setIsDeleteDialogOpen(false)
       
-      toast({
-        title: "Collaborateur supprimé",
-        description: `${collaborateur.firstName} ${collaborateur.lastName} a été supprimé avec succès.`,
+      Swal.fire({
+        title: 'Succès!',
+        text: `${collaborateur.firstName} ${collaborateur.lastName} a été supprimé avec succès.`,
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       })
       
       // Redirect after a short delay
@@ -154,10 +160,11 @@ const CollaborateurEdit = () => {
       }, 1000)
     } catch (error) {
       console.error(`Error deleting collaborateur with ID ${id}:`, error)
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le collaborateur.",
-        variant: "destructive",
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de supprimer le collaborateur.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       })
     } finally {
       setLoading(false)

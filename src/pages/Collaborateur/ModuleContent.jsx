@@ -10,6 +10,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "../../components/ui/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 import { Loader2, AlertCircle, ArrowLeft, ArrowRight } from "lucide-react"
 import ContentViewer from "../../components/Collaborateur/ContentViewer"
+import Swal from 'sweetalert2'
 
 const ModuleContent = () => {
   const { formationId, moduleId } = useParams()

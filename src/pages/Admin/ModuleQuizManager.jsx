@@ -8,10 +8,9 @@ import { Button } from "../components/ui/button";
 import { moduleService } from "../services/moduleService";
 import QuizFormWithPreview from "../components/QuizFormWithPreview";
 import QuizPreviewModal from "../components/QuizPreviewModal";
-import { useToast } from "../hooks/use-toast";
+import Swal from 'sweetalert2';
 
 const ModuleQuizManager = ({ moduleId, initialHasQuiz = false, initialQuiz = null, onChange }) => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasQuiz, setHasQuiz] = useState(initialHasQuiz);
@@ -58,7 +57,7 @@ const ModuleQuizManager = ({ moduleId, initialHasQuiz = false, initialQuiz = nul
   const handleToggleQuiz = (checked) => {
     setHasQuiz(checked);
     
-    // Si on active le quiz et qu'il n'y en a pas déjà un, en créer un nouveau
+    // Si on active le quiz et qu'il n'y a pas déjà un, en créer un nouveau
     if (checked && !quiz) {
       setQuiz({
         titre: "Quiz d'évaluation",
@@ -84,16 +83,19 @@ const ModuleQuizManager = ({ moduleId, initialHasQuiz = false, initialQuiz = nul
     
     try {
       await moduleService.saveQuiz(moduleId, quizData);
-      toast({
-        title: "Quiz sauvegardé",
-        description: "Le quiz a été sauvegardé avec succès."
+      Swal.fire({
+        title: 'Quiz sauvegardé',
+        text: 'Le quiz a été sauvegardé avec succès.',
+        icon: 'success',
+        confirmButtonText: 'OK'
       });
     } catch (error) {
       console.error("Erreur lors de la sauvegarde du quiz:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder le quiz sur le serveur. Vos modifications sont conservées localement."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de sauvegarder le quiz sur le serveur. Vos modifications sont conservées localement.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     }
   };

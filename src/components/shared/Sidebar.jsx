@@ -141,10 +141,13 @@ const Sidebar = () => {
       <div className="border-t p-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className={cn(
-              "w-full",
-              collapsed ? "justify-center px-0" : "justify-start"
-            )}>
+            <Button 
+              variant="ghost" 
+              className={cn(
+                "w-full hover:bg-gray-100 transition-colors cursor-pointer",
+                collapsed ? "justify-center px-0" : "justify-start"
+              )}
+            >
               <Avatar className="h-8 w-8">
                 <AvatarImage src={currentUser?.avatar || APP_SETTINGS.defaultAvatarUrl} />
                 <AvatarFallback>{currentUser?.firstName?.charAt(0) || "U"}</AvatarFallback>
@@ -159,15 +162,28 @@ const Sidebar = () => {
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/profile")}>
+          <DropdownMenuContent 
+            align="end" 
+            className="w-56 bg-white border shadow-lg rounded-md p-1"
+            side="top"
+            sideOffset={8}
+          >
+            <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold text-gray-900">
+              Mon compte
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="my-1 border-gray-200" />
+            <DropdownMenuItem 
+              onClick={() => navigate("/profile")}
+              className="px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-sm cursor-pointer transition-colors flex items-center"
+            >
               <User className="mr-2 h-4 w-4" />
               Profil
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuSeparator className="my-1 border-gray-200" />
+            <DropdownMenuItem 
+              onClick={handleLogout}
+              className="px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-sm cursor-pointer transition-colors flex items-center"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Déconnexion
             </DropdownMenuItem>

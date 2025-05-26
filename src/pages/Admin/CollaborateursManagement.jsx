@@ -9,7 +9,6 @@ import { collaborateurService } from "../../services/collaborateurService"
 import { useNavigate } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
-import { useToast } from "../../hooks/use-toast"
 import {
   Dialog,
   DialogContent,
@@ -26,7 +25,6 @@ import CollaborateurForm from "../../components/Collaborateur/CollaborateurForm"
 const CollaborateursManagement = () => {
   const { currentUser } = useAuth()
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [allCollaborateurs, setAllCollaborateurs] = useState([]) // Store all collaborateurs
@@ -147,16 +145,20 @@ const CollaborateursManagement = () => {
       setIsDeleteDialogOpen(false)
       setCollaborateurToDelete(null)
       
-      toast({
-        title: "Collaborateur supprimé",
-        description: `${collaborateurToDelete.firstName} ${collaborateurToDelete.lastName} a été supprimé avec succès.`,
+      Swal.fire({
+        title: 'Succès!',
+        text: `${collaborateurToDelete.firstName} ${collaborateurToDelete.lastName} a été supprimé avec succès.`,
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       })
     } catch (error) {
       console.error("Error deleting collaborateur:", error)
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le collaborateur. Veuillez réessayer plus tard.",
-        variant: "destructive"
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de supprimer le collaborateur. Veuillez réessayer plus tard.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       })
     }
   }

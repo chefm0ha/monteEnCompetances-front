@@ -19,14 +19,12 @@ import {
 } from "lucide-react";
 import { moduleService } from "../services/moduleService";
 import { formationService } from "../services/formationService";
-import { useToast } from "../hooks/use-toast";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import Swal from "sweetalert2";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const FormationModulesList = () => {
   const { formationId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formation, setFormation] = useState(null);
@@ -51,10 +49,10 @@ const FormationModulesList = () => {
     } catch (error) {
       console.error("Erreur lors de la récupération des données:", error);
       setError("Impossible de récupérer les données de la formation et des modules.");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de récupérer les données."
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: 'Impossible de récupérer les données.',
       });
     } finally {
       setLoading(false);
@@ -147,16 +145,19 @@ const FormationModulesList = () => {
       // Envoyer l'ordre au serveur
       await moduleService.reorderModules(formationId, moduleIds);
       
-      toast({
+      Swal.fire({
         title: "Ordre mis à jour",
-        description: "L'ordre des modules a été mis à jour avec succès."
+        text: "L'ordre des modules a été mis à jour avec succès.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
       });
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'ordre des modules:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de mettre à jour l'ordre des modules."
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: 'Impossible de mettre à jour l'ordre des modules.',
       });
     } finally {
       setReordering(false);

@@ -20,12 +20,11 @@ import {
   Eye,
   X
 } from "lucide-react";
-import { useToast } from "../../hooks/use-toast";
+import Swal from 'sweetalert2';
 import { quizService } from "../../services/quizService";
 import QuizPreviewModal from "./QuizPreviewModal";
 
 const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false }) => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -190,10 +189,11 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
     const isCorrectChoice = choiceToRemove?.estCorrect || false;
     
     if (question.choix.length <= 2) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Une question doit avoir au moins deux choix de réponse",
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Une question doit avoir au moins deux choix de réponse',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
       return;
     }
@@ -288,18 +288,22 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
         onSave(savedQuiz);
       }
       
-      toast({
-        title: "Quiz sauvegardé",
-        description: "Le quiz a été sauvegardé avec succès."
+      Swal.fire({
+        title: 'Succès!',
+        text: 'Le quiz a été sauvegardé avec succès.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       });
     } catch (error) {
       console.error("Error saving quiz:", error);
       setError("Une erreur est survenue lors de la sauvegarde du quiz.");
       
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder le quiz. Veuillez réessayer plus tard."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de sauvegarder le quiz. Veuillez réessayer plus tard.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     } finally {
       setSaving(false);
@@ -311,288 +315,189 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
     return Math.round(100 / quiz.questions.length);
   };
 
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Quiz du module</CardTitle>
+    <div className="p-4 sm:p-6 lg:p-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>{quiz.id ? "Modifier le quiz" : "Créer un nouveau quiz"}</CardTitle>
           <CardDescription>
-            Configurez les questions et réponses pour évaluer les connaissances
+            {quiz.id
+              ? "Modifiez les détails de votre quiz ci-dessous."
+              : "Remplissez les informations du quiz et ajoutez des questions."}
           </CardDescription>
-        </div>
-        <div className="flex items-center space-x-2">
-          {quiz.questions.length > 0 && (
-            <Button variant="outline" onClick={() => setPreviewOpen(true)}>
-              <Eye className="h-4 w-4 mr-2" />
-              Aperçu
-            </Button>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
-        </div>
-      </CardHeader>
-
-      <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
+          <div className="grid gap-4">
+            <div>
               <Label htmlFor="titre">Titre du quiz</Label>
               <Input
                 id="titre"
                 name="titre"
                 value={quiz.titre}
                 onChange={handleChange}
-                placeholder="Entrez le titre du quiz"
                 disabled={readOnly}
+                placeholder="Entrez le titre du quiz"
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="seuilReussite" className="flex items-center gap-2">
-                Seuil de réussite (%)
-                <HelpCircle className="h-4 w-4 text-gray-400" />
-              </Label>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={quiz.description}
+                onChange={handleChange}
+                disabled={readOnly}
+                placeholder="Entrez une description pour le quiz"
+              />
+            </div>
+            <div>
+              <Label htmlFor="seuilReussite">Seuil de réussite (%)</Label>
               <Input
                 id="seuilReussite"
                 name="seuilReussite"
                 type="number"
-                min="1"
-                max="100"
                 value={quiz.seuilReussite}
                 onChange={handleNumberChange}
-                placeholder="Ex: 70"
                 disabled={readOnly}
+                placeholder="Entrez le seuil de réussite"
               />
-              <p className="text-xs text-gray-500">
-                Pourcentage de bonnes réponses requis pour réussir le quiz
-              </p>
             </div>
-            
-            <div className="p-3 bg-blue-50 rounded-md">
-              <p className="text-sm text-blue-700">
-                <strong>Information:</strong> Chaque question vaut {getQuestionPointsValue()} points
-                {quiz.questions.length > 0 ? 
-                  ` (100 points répartis sur ${quiz.questions.length} questions)` : 
-                  ". Ajoutez des questions ci-dessous."
-                }
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Questions</h3>
+            <div>
+              <Label>Questions</Label>
+              {quiz.questions.length === 0 ? (
+                <p>Aucune question ajoutée pour le moment.</p>
+              ) : (
+                <div className="space-y-4">
+                  {quiz.questions.map((question, index) => (
+                    <div key={question.id} className="p-4 border rounded-md">
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => moveQuestionUp(index)}
+                            disabled={readOnly || index === 0}
+                          >
+                            <Move className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => moveQuestionDown(index)}
+                            disabled={readOnly || index === quiz.questions.length - 1}
+                          >
+                            <Move className="w-4 h-4 rotate-180" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => removeQuestion(question.id)}
+                            disabled={readOnly}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div>
+                          <Badge variant="outline">
+                            Valeur: {getQuestionPointsValue()}%
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="mb-2">
+                        <Label>Question</Label>
+                        <Textarea
+                          value={question.contenu}
+                          onChange={(e) => handleQuestionChange(question.id, e.target.value)}
+                          disabled={readOnly}
+                          placeholder="Entrez le contenu de la question"
+                        />
+                      </div>
+                      <div>
+                        <Label>Choix de réponse</Label>
+                        {question.choix.map((choix) => (
+                          <div key={choix.id} className="flex gap-2 items-center mb-2">
+                            <Input
+                              type="text"
+                              value={choix.contenu}
+                              onChange={(e) => handleChoiceChange(question.id, choix.id, e.target.value)}
+                              disabled={readOnly}
+                              placeholder="Entrez un choix de réponse"
+                              className="flex-1"
+                            />
+                            <Button
+                              variant={choix.estCorrect ? "default" : "outline"}
+                              onClick={() => handleCorrectAnswerChange(question.id, choix.id)}
+                              disabled={readOnly}
+                              size="icon"
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => removeChoice(question.id, choix.id)}
+                              disabled={readOnly}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          onClick={() => addChoice(question.id)}
+                          disabled={readOnly}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Ajouter un choix
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {!readOnly && (
-                <Button type="button" onClick={addQuestion}>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button
+                  variant="outline"
+                  onClick={addQuestion}
+                  className="mt-4"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
                   Ajouter une question
                 </Button>
               )}
             </div>
-
-            {quiz.questions.length === 0 ? (
-              <div className="text-center py-10 border rounded-md bg-gray-50">
-                <p className="text-gray-500">Aucune question ajoutée.</p>
-                <p className="text-sm text-gray-400">
-                  {readOnly 
-                    ? "Ce quiz ne contient pas encore de questions."
-                    : "Cliquez sur \"Ajouter une question\" pour commencer."}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {quiz.questions.map((question, qIndex) => (
-                  <Card key={question.id} className="border-2 border-gray-200">
-                    <CardHeader className="bg-gray-50 pb-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CardTitle className="text-base">
-                            Question {qIndex + 1}
-                          </CardTitle>
-                          <Badge variant="outline" className="ml-2">
-                            {getQuestionPointsValue()} points
-                          </Badge>
-                        </div>
-                        {!readOnly && (
-                          <div className="flex items-center space-x-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => moveQuestionUp(qIndex)}
-                              disabled={qIndex === 0}
-                            >
-                              <Move className="h-4 w-4 rotate-180" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => moveQuestionDown(qIndex)}
-                              disabled={qIndex === quiz.questions.length - 1}
-                            >
-                              <Move className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeQuestion(question.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4 pt-4">
-                      <div className="space-y-2">
-                        <Label htmlFor={`question-${question.id}`}>
-                          Énoncé de la question
-                        </Label>
-                        <Textarea
-                          id={`question-${question.id}`}
-                          value={question.contenu}
-                          onChange={(e) =>
-                            handleQuestionChange(question.id, e.target.value)
-                          }
-                          placeholder="Entrez l'énoncé de la question"
-                          rows={2}
-                          disabled={readOnly}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label>Réponses possibles</Label>
-                          {!readOnly && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => addChoice(question.id)}
-                              disabled={question.choix.length >= 6}
-                            >
-                              <Plus className="h-3 w-3 mr-1" />
-                              Ajouter une réponse
-                            </Button>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          {readOnly 
-                            ? "La réponse correcte est indiquée" 
-                            : "Sélectionnez la réponse correcte"}
-                        </p>
-
-                        <RadioGroup
-                          value={
-                            question.choix.find((c) => c.estCorrect)?.id || ""
-                          }
-                          onValueChange={(value) =>
-                            !readOnly && handleCorrectAnswerChange(question.id, value)
-                          }
-                          className="space-y-3"
-                        >
-                          {question.choix.map((choix, cIndex) => (
-                            <div
-                              key={choix.id}
-                              className="flex items-center space-x-2"
-                            >
-                              <RadioGroupItem
-                                value={choix.id}
-                                id={`choice-${choix.id}`}
-                                disabled={readOnly}
-                              />
-                              {readOnly ? (
-                                <Label 
-                                  htmlFor={`choice-${choix.id}`}
-                                  className={`flex-1 ${choix.estCorrect ? "font-medium text-green-700" : ""}`}
-                                >
-                                  {choix.contenu}
-                                  {choix.estCorrect && (
-                                    <Check className="ml-2 inline-block h-4 w-4 text-green-600" />
-                                  )}
-                                </Label>
-                              ) : (
-                                <div className="flex flex-1 items-center space-x-2">
-                                  <Input
-                                    value={choix.contenu}
-                                    onChange={(e) =>
-                                      handleChoiceChange(
-                                        question.id,
-                                        choix.id,
-                                        e.target.value
-                                      )
-                                    }
-                                    placeholder={`Réponse ${cIndex + 1}`}
-                                    className="flex-1"
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                      removeChoice(question.id, choix.id)
-                                    }
-                                    disabled={question.choix.length <= 2}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
           </div>
-        </div>
-      </CardContent>
-
-      {!readOnly && (
+        </CardContent>
         <CardFooter className="flex justify-end">
-          <Button type="button" onClick={handleSubmit} disabled={saving}>
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Sauvegarde...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Sauvegarder le quiz
-              </>
-            )}
+          <Button
+            onClick={handleSubmit}
+            disabled={readOnly}
+            className="mr-2"
+            isLoading={saving}
+          >
+            {quiz.id ? "Sauvegarder les modifications" : "Créer le quiz"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setPreviewOpen(true)}
+            disabled={readOnly}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Prévisualiser le quiz
           </Button>
         </CardFooter>
-      )}
-
-      {/* Preview Modal */}
-      <QuizPreviewModal 
-        open={previewOpen} 
-        onOpenChange={setPreviewOpen} 
+      </Card>
+      <QuizPreviewModal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
         quiz={quiz}
       />
-    </Card>
+    </div>
   );
 };
 

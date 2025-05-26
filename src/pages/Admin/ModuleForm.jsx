@@ -15,6 +15,7 @@ import { formationService } from "../services/formationService";
 import { useToast } from "../hooks/use-toast";
 import ModuleSupportsManager from "../components/ModuleSupportsManager";
 import QuizFormWithPreview from "../components/QuizFormWithPreview";
+import Swal from 'sweetalert2'
 
 const ModuleForm = () => {
   const { formationId, moduleId } = useParams();

@@ -9,12 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
 import { Search, UserPlus, Loader2, Check, X, Mail } from "lucide-react";
-import { useToast } from "../../hooks/use-toast";
+import Swal from 'sweetalert2';
 import { collaborateurService } from "../../services/collaborateurService";
 import { formationService } from "../../services/formationService";
 
 const FormationAssignation = ({ formationId = null }) => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,10 +68,11 @@ const FormationAssignation = ({ formationId = null }) => {
       fetchCollaborateurs();
     } catch (error) {
       console.error("Erreur lors de la récupération des données:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de récupérer les données nécessaires."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de récupérer les données nécessaires.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     } finally {
       setLoading(false);
@@ -94,10 +94,11 @@ const FormationAssignation = ({ formationId = null }) => {
       setCollaborateurs(collaborateursData);
     } catch (error) {
       console.error("Erreur lors de la récupération des collaborateurs:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de récupérer la liste des collaborateurs."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de récupérer la liste des collaborateurs.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     }
   };
@@ -110,10 +111,11 @@ const FormationAssignation = ({ formationId = null }) => {
       setAlreadyAssigned(assignedData.map(c => c.id));
     } catch (error) {
       console.error("Erreur lors de la récupération des assignations:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de récupérer les assignations existantes."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de récupérer les assignations existantes.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     }
   };
@@ -157,19 +159,21 @@ const FormationAssignation = ({ formationId = null }) => {
 
   const handleAssign = async () => {
     if (!selectedFormation) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Veuillez sélectionner une formation."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Veuillez sélectionner une formation.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
       return;
     }
 
     if (selectedCollaborateurs.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Veuillez sélectionner au moins un collaborateur."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Veuillez sélectionner au moins un collaborateur.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
       return;
     }
@@ -178,9 +182,12 @@ const FormationAssignation = ({ formationId = null }) => {
     try {
       await formationService.assignFormation(selectedFormation, selectedCollaborateurs);
       
-      toast({
-        title: "Succès",
-        description: `Formation assignée à ${selectedCollaborateurs.length} collaborateur(s).`
+      Swal.fire({
+        title: 'Succès!',
+        text: `Formation assignée à ${selectedCollaborateurs.length} collaborateur(s).`,
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       });
       
       // Rafraîchir la liste des collaborateurs déjà assignés
@@ -193,10 +200,11 @@ const FormationAssignation = ({ formationId = null }) => {
       setActiveTab("assigned");
     } catch (error) {
       console.error("Erreur lors de l'assignation de la formation:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible d'assigner la formation aux collaborateurs sélectionnés."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible d\'assigner la formation aux collaborateurs sélectionnés.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     } finally {
       setAssigning(false);
@@ -209,19 +217,23 @@ const FormationAssignation = ({ formationId = null }) => {
     try {
       await formationService.removeAssignment(selectedFormation, collaborateurId);
       
-      toast({
-        title: "Succès",
-        description: "Assignation supprimée avec succès."
+      Swal.fire({
+        title: 'Succès!',
+        text: 'Assignation supprimée avec succès.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       });
       
       // Rafraîchir la liste des collaborateurs déjà assignés
       fetchAssignedCollaborateurs();
     } catch (error) {
       console.error("Erreur lors de la suppression de l'assignation:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de supprimer l'assignation."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de supprimer l\'assignation.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     }
   };
@@ -232,16 +244,20 @@ const FormationAssignation = ({ formationId = null }) => {
     try {
       await formationService.sendReminderEmail(selectedFormation, collaborateurId);
       
-      toast({
-        title: "Rappel envoyé",
-        description: "Un email de rappel a été envoyé au collaborateur."
+      Swal.fire({
+        title: 'Succès!',
+        text: 'Un email de rappel a été envoyé au collaborateur.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
       });
     } catch (error) {
       console.error("Erreur lors de l'envoi du rappel:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible d'envoyer le rappel."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible d\'envoyer le rappel.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       });
     }
   };

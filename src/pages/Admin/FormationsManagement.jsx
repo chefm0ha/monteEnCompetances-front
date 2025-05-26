@@ -25,12 +25,10 @@ import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
 import { Plus, Pencil, Trash2, Search, FolderPlus, LayoutGrid, List, Loader2 } from "lucide-react"
 import { formationService } from "../../services/formationService"
-import { useToast } from "../../hooks/use-toast"
 import Swal from "sweetalert2"
 
 const FormationsManagement = () => {
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [formations, setFormations] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -55,10 +53,11 @@ const FormationsManagement = () => {
       setFormations(formationsData)
     } catch (error) {
       console.error("Erreur lors de la récupération des données:", error)
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger les formations."
+      Swal.fire({
+        title: 'Erreur',
+        text: 'Impossible de charger les formations.',
+        icon: 'error',
+        confirmButtonText: 'OK'
       })
     } finally {
       setLoading(false)
@@ -91,10 +90,11 @@ const FormationsManagement = () => {
         
         fetchData()
       } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Impossible de supprimer la formation."
+        Swal.fire({
+          title: 'Erreur',
+          text: 'Impossible de supprimer la formation.',
+          icon: 'error',
+          confirmButtonText: 'OK'
         })
       }
     }
@@ -122,18 +122,21 @@ const FormationsManagement = () => {
     try {
       // Create a new module
       if (!newModule.titre) {
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Le titre du module est obligatoire."
+        Swal.fire({
+          title: 'Erreur',
+          text: 'Le titre du module est obligatoire.',
+          icon: 'error',
+          confirmButtonText: 'OK'
         })
         return
       }
 
       await formationService.createModule(selectedFormation.id, newModule)
-      toast({
-        title: "Module créé",
-        description: "Le module a été ajouté à la formation avec succès."
+      Swal.fire({
+        title: 'Module créé',
+        text: 'Le module a été ajouté à la formation avec succès.',
+        icon: 'success',
+        confirmButtonText: 'OK'
       })
 
       // Reset state and close dialog
@@ -148,10 +151,11 @@ const FormationsManagement = () => {
       fetchData()
     } catch (error) {
       console.error("Erreur lors de l'ajout du module:", error)
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible d'ajouter le module à la formation."
+      Swal.fire({
+        title: 'Erreur',
+        text: "Impossible d'ajouter le module à la formation.",
+        icon: 'error',
+        confirmButtonText: 'OK'
       })
     }
   }

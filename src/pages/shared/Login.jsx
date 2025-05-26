@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Loader2, AlertCircle } from "lucide-react"
 import { APP_SETTINGS } from "../../config"
+import Swal from 'sweetalert2'
 
 const Login = () => {
   const [email, setEmail] = useState("")
@@ -86,7 +87,12 @@ const Login = () => {
                       className="text-sm text-primary hover:underline"
                       onClick={(e) => {
                         e.preventDefault()
-                        alert("Contactez votre administrateur pour réinitialiser votre mot de passe.")
+                        Swal.fire({
+                          title: 'Mot de passe oublié ?',
+                          text: 'Contactez votre administrateur pour réinitialiser votre mot de passe.',
+                          icon: 'info',
+                          confirmButtonText: 'Compris'
+                        })
                       }}
                     >
                       Mot de passe oublié ?

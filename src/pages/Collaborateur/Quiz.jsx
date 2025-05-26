@@ -8,13 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "../../components/ui/breadcrumb"
 import { Loader2, AlertCircle, ArrowLeft, CheckCircle, XCircle } from "lucide-react"
-import { useToast } from "../../hooks/use-toast"
+import Swal from 'sweetalert2'
 import QuizQuestion from "../../components/Collaborateur/QuizQuestion"
 
 const Quiz = () => {
   const { formationId, moduleId } = useParams()
   const navigate = useNavigate()
-  const { toast } = useToast()
   const [quiz, setQuiz] = useState(null)
   const [formation, setFormation] = useState(null)
   const [module, setModule] = useState(null)
@@ -71,10 +70,10 @@ const Quiz = () => {
 
   const handleSubmitQuiz = async () => {
     if (!isQuizComplete()) {
-      toast({
-        title: "Quiz incomplet",
-        description: "Veuillez répondre à toutes les questions avant de soumettre le quiz.",
-        variant: "destructive",
+      Swal.fire({
+        icon: 'error',
+        title: 'Quiz incomplet',
+        text: 'Veuillez répondre à toutes les questions avant de soumettre le quiz.',
       })
       return
     }
@@ -86,25 +85,25 @@ const Quiz = () => {
       setShowResults(true)
 
       if (results.passed) {
-        toast({
-          title: "Quiz réussi !",
-          description: `Vous avez obtenu ${results.score}/${quiz.questions.length} points.`,
-          variant: "default",
+        Swal.fire({
+          icon: 'success',
+          title: 'Quiz réussi !',
+          text: `Vous avez obtenu ${results.score}/${quiz.questions.length} points.`,
         })
       } else {
-        toast({
-          title: "Quiz échoué",
-          description: `Vous avez obtenu ${results.score}/${quiz.questions.length} points. Score minimum requis: ${results.requiredScore}.`,
-          variant: "destructive",
+        Swal.fire({
+          icon: 'error',
+          title: 'Quiz échoué',
+          text: `Vous avez obtenu ${results.score}/${quiz.questions.length} points. Score minimum requis: ${results.requiredScore}.`,
         })
       }
     } catch (error) {
       console.error("Error submitting quiz:", error)
       setError("Impossible de soumettre le quiz. Veuillez réessayer plus tard.")
-      toast({
-        title: "Erreur",
-        description: "Impossible de soumettre le quiz. Veuillez réessayer.",
-        variant: "destructive",
+      Swal.fire({
+        icon: 'error',
+        title: 'Erreur',
+        text: 'Impossible de soumettre le quiz. Veuillez réessayer.',
       })
     } finally {
       setSubmitting(false)
