@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { APP_SETTINGS } from "../../config"
 import { cn } from "../../lib/utils"
+import NotificationDropdown from "./NotificationDropdown"
 
 const Sidebar = () => {
   const { currentUser, logout } = useAuth()
@@ -91,7 +92,7 @@ const Sidebar = () => {
       "fixed inset-y-0 left-0 z-40 flex flex-col bg-white shadow-lg transition-all duration-300",
       collapsed ? "w-16" : "w-64"
     )}>
-      {/* Logo and toggle button */}
+      {/* Logo, notifications and toggle button */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center">
           <img 
@@ -103,14 +104,18 @@ const Sidebar = () => {
             <span className="ml-2 text-sm font-semibold">Plateforme de Formation</span>
           )}
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="h-8 w-8 p-0" 
-          onClick={toggleSidebar}
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
+        <div className="flex items-center gap-1">
+          {/* Notifications - only show for admins */}
+          {isAdmin && <NotificationDropdown />}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0" 
+            onClick={toggleSidebar}
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
       
       {/* Admin badge */}
