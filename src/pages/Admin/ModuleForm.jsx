@@ -12,7 +12,7 @@ import { AlertCircle, ArrowLeft, Loader2, Save } from "lucide-react";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { moduleService } from "../services/moduleService";
 import { formationService } from "../services/formationService";
-import { useToast } from "../hooks/use-toast";
+import { showToast } from "../utils/sweetAlert";
 import ModuleSupportsManager from "../components/ModuleSupportsManager";
 import QuizFormWithPreview from "../components/QuizFormWithPreview";
 import Swal from 'sweetalert2'
@@ -20,7 +20,6 @@ import Swal from 'sweetalert2'
 const ModuleForm = () => {
   const { formationId, moduleId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(moduleId ? true : false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -51,14 +50,9 @@ const ModuleForm = () => {
   const fetchFormations = async () => {
     try {
       const data = await formationService.getAllFormations();
-      setFormations(data);
-    } catch (error) {
+      setFormations(data);    } catch (error) {
       console.error("Erreur lors de la récupération des formations:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de récupérer la liste des formations."
-      });
+      showToast.error("Impossible de récupérer la liste des formations.");
     }
   };
 
@@ -81,15 +75,10 @@ const ModuleForm = () => {
         ...data,
         hasQuiz,
         quiz
-      });
-    } catch (error) {
+      });    } catch (error) {
       console.error("Erreur lors de la récupération du module:", error);
       setError("Impossible de récupérer les détails du module.");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de récupérer les détails du module."
-      });
+      showToast.error("Impossible de récupérer les détails du module.");
     } finally {
       setLoading(false);
     }
@@ -163,39 +152,27 @@ const ModuleForm = () => {
       setSaving(true);
       setError(null);
 
-      let response;
-      if (moduleId) {
+      let response;      if (moduleId) {
         // Mise à jour d'un module existant
         response = await moduleService.updateModule(moduleId, moduleData);
-        toast({
-          title: "Module mis à jour",
-          description: "Le module a été mis à jour avec succès."
-        });
+        showToast.success("Le module a été mis à jour avec succès.", "Module mis à jour");
       } else {
         // Création d'un nouveau module
         response = await moduleService.createModule(
           { formationId: module.formationId },
           moduleData
         );
-        toast({
-          title: "Module créé",
-          description: "Le module a été créé avec succès."
-        });
+        showToast.success("Le module a été créé avec succès.", "Module créé");
       }
       
       // Redirection vers la liste des modules après un court délai
       setTimeout(() => {
         navigate(`/admin/formations/${module.formationId}/modules`);
       }, 1000);
-      
-    } catch (error) {
+        } catch (error) {
       console.error("Erreur lors de la sauvegarde du module:", error);
       setError("Impossible de sauvegarder le module. Veuillez réessayer plus tard.");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder le module."
-      });
+      showToast.error("Impossible de sauvegarder le module.");
     } finally {
       setSaving(false);
     }

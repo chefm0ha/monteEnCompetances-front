@@ -11,14 +11,13 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { Plus, Search, RefreshCw } from "lucide-react";
-import { useToast } from "../../hooks/use-toast";
+import { showToast } from "../../utils/sweetAlert";
 import { formationService } from "../../services/formationService";
 import { moduleService } from "../../services/moduleService";
 import FormationCard from "../../components/shared/FormationCard";
 
 const FormationsPage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [formations, setFormations] = useState([]);
   const [modules, setModules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,14 +59,9 @@ const FormationsPage = () => {
       }));
       
       setFormations(formattedFormations);
-      setModules(modulesData);
-    } catch (error) {
+      setModules(modulesData);    } catch (error) {
       console.error("Error fetching data:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load formations. Please try again."
-      });
+      showToast.error("Failed to load formations. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -91,13 +85,9 @@ const FormationsPage = () => {
   
   const handleAddModule = async (moduleData, action) => {
     try {
-      if (action === "create") {
-        // Create a new module
+      if (action === "create") {        // Create a new module
         const response = await moduleService.createModule(moduleData);
-        toast({
-          title: "Module créé",
-          description: "Le module a été ajouté à la formation avec succès."
-        });
+        showToast.success("Le module a été ajouté à la formation avec succès.", "Module créé");
         
         // Update the modules list
         setModules(prev => [...prev, response]);
@@ -122,14 +112,10 @@ const FormationsPage = () => {
             ...moduleToUpdate, 
             formationId: moduleData.formationId 
           };
-          
-          // Update the module in the API
+            // Update the module in the API
           await moduleService.updateModule(moduleData.id, updatedModule);
           
-          toast({
-            title: "Module lié",
-            description: "Le module existant a été lié à la formation avec succès."
-          });
+          showToast.success("Le module existant a été lié à la formation avec succès.", "Module lié");
           
           // Update the modules list
           setModules(prev => 
@@ -148,14 +134,9 @@ const FormationsPage = () => {
             )
           );
         }
-      }
-    } catch (error) {
+      }    } catch (error) {
       console.error("Error adding module:", error);
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible d'ajouter le module. Veuillez réessayer."
-      });
+      showToast.error("Impossible d'ajouter le module. Veuillez réessayer.");
     }
   };
   

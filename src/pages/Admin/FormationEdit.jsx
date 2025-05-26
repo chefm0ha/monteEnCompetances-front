@@ -35,6 +35,7 @@ import {
 } from "lucide-react"
 import { formationService } from "../../services/formationService"
 import { moduleService } from "../../services/moduleService"
+import { showToast } from "../../utils/sweetAlert"
 import Swal from 'sweetalert2'
 import ImageUpload from "../../components/shared/ImageUpload"
 import { 
@@ -102,23 +103,14 @@ const FormationEdit = () => {
         const modulesData = await moduleService.getModulesByFormation(id)
         setModules(modulesData)
       } catch (moduleError) {
-        console.error("Erreur lors de la récupération des modules:", moduleError)
-        // If modules fetch fails, we still have the formation data
+        console.error("Erreur lors de la récupération des modules:", moduleError)        // If modules fetch fails, we still have the formation data
         setModules([])
-        toast({
-          variant: "warning",
-          title: "Avertissement",
-          description: "Impossible de récupérer les modules de la formation."
-        })
+        showToast.warning("Impossible de récupérer les modules de la formation.");
       }
     } catch (error) {
       console.error("Erreur lors de la récupération de la formation:", error)
       setError("Impossible de récupérer les détails de la formation.")
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de charger la formation."
-      })
+      showToast.error("Impossible de charger la formation.");
     } finally {
       setLoading(false)
     }
@@ -185,13 +177,9 @@ const FormationEdit = () => {
         
         // If modules order was changed, save that too
         if (modulesChanged) {
-          await saveModulesOrder()
-        }
+          await saveModulesOrder()        }
         
-        toast({
-          title: "Formation mise à jour",
-          description: "La formation a été mise à jour avec succès."
-        })
+        showToast.success("La formation a été mise à jour avec succès.", "Formation mise à jour");
       } else {
         // Create new formation
         response = await formationService.createFormation(formation)
@@ -208,14 +196,9 @@ const FormationEdit = () => {
       
       // Navigate to the formation details page
       navigate(`/admin/formations/${response.id || id}`)
-      
-    } catch (error) {
+        } catch (error) {
       setError(error.message || "Impossible de sauvegarder la formation. Veuillez réessayer plus tard.")
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error.message || "Impossible de sauvegarder la formation."
-      })
+      showToast.error(error.message || "Impossible de sauvegarder la formation.");
     } finally {
       setSaving(false)
     }
@@ -223,11 +206,7 @@ const FormationEdit = () => {
 
   const handleAddModule = () => {
     if (!id) {
-      toast({
-        variant: "destructive",
-        title: "Information",
-        description: "Veuillez d'abord sauvegarder la formation avant d'ajouter des modules."
-      })
+      showToast.info("Veuillez d'abord sauvegarder la formation avant d'ajouter des modules.");
       return
     }
     
@@ -246,15 +225,10 @@ const FormationEdit = () => {
       [name]: value
     }))
   }
-
   const handleCreateModule = async () => {
     // Validation
     if (!newModule.titre.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Le titre du module est obligatoire."
-      })
+      showToast.error("Le titre du module est obligatoire.");
       return
     }
 
@@ -263,12 +237,8 @@ const FormationEdit = () => {
         ...newModule,
         formationId: id
       }
-      
-      const response = await moduleService.createModule({ formationId: id }, moduleData)
-      toast({
-        title: "Module ajouté",
-        description: "Le module a été ajouté avec succès."
-      })
+        const response = await moduleService.createModule({ formationId: id }, moduleData)
+      showToast.success("Le module a été ajouté avec succès.", "Module ajouté");
       
       // Add the new module to the list
       setModules([...modules, response])
@@ -279,14 +249,9 @@ const FormationEdit = () => {
         titre: "",
         description: "",
         formationId: id
-      })
-    } catch (error) {
+      })    } catch (error) {
       console.error("Erreur lors de l'ajout du module:", error)
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible d'ajouter le module."
-      })
+      showToast.error("Impossible d'ajouter le module.");
     }
   }
 
@@ -325,20 +290,12 @@ const FormationEdit = () => {
       
       // Use the formationService to update the module order
       await formationService.reorderModules(id, moduleIds)
+        setModulesChanged(false)
       
-      setModulesChanged(false)
-      
-      toast({
-        title: "Ordre mis à jour",
-        description: "L'ordre des modules a été mis à jour avec succès."
-      })
+      showToast.success("L'ordre des modules a été mis à jour avec succès.", "Ordre mis à jour");
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'ordre des modules:", error)
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de mettre à jour l'ordre des modules."
-      })
+      showToast.error("Impossible de mettre à jour l'ordre des modules.");
     } finally {
       setSaving(false)
     }
@@ -425,48 +382,31 @@ const FormationEdit = () => {
     }
     
   } catch (error) {
-    console.error("Erreur lors de la récupération des détails du module:", error);
-    setSelectedModuleSupports([]);
+    console.error("Erreur lors de la récupération des détails du module:", error);    setSelectedModuleSupports([]);
     setSelectedModuleQuiz(null);
-    toast({
-      variant: "warning",
-      title: "Avertissement",
-      description: "Impossible de récupérer les détails du module."
-    });
+    showToast.warning("Impossible de récupérer les détails du module.");
   }
 };
 
   const handleUpdateModuleSupports = async (updatedSupports) => {
     if (selectedModuleIndex === null) return;
-    
-    // Just update the local state with the updated supports
+      // Just update the local state with the updated supports
     // The actual API calls are now handled by the ModuleSupportsManager component
     setSelectedModuleSupports(updatedSupports);
     
-    toast({
-      title: "Contenu mis à jour",
-      description: "Les contenus du module ont été mis à jour avec succès."
-    });
+    showToast.success("Les contenus du module ont été mis à jour avec succès.", "Contenu mis à jour");
   };
 
   const handleUpdateModuleQuiz = async (updatedQuiz) => {
   if (selectedModuleIndex === null) return;
-  
-  try {
+    try {
     // Just refresh the module selection to reload all data
     await handleSelectModule(selectedModuleIndex);
     
-    toast({
-      title: "Quiz mis à jour",
-      description: "Le quiz du module a été mis à jour avec succès."
-    });
+    showToast.success("Le quiz du module a été mis à jour avec succès.", "Quiz mis à jour");
   } catch (error) {
     console.error("Error updating quiz:", error);
-    toast({
-      variant: "destructive",
-      title: "Erreur",
-      description: "Erreur lors de la mise à jour du quiz."
-    });
+    showToast.error("Erreur lors de la mise à jour du quiz.");
   }
 };
 

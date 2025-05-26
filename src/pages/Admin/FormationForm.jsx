@@ -10,11 +10,10 @@ import { AlertCircle, ArrowLeft, Loader2, Save } from "lucide-react";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import ImageUpload from "../components/ImageUpload";
 import { formationService } from "../services/formationService";
-import { useToast } from "../hooks/use-toast";
+import { showToast } from "../utils/sweetAlert";
 
 const FormationForm = ({ formationId = null }) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(!!formationId);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -46,15 +45,10 @@ const FormationForm = ({ formationId = null }) => {
     try {
       setLoading(true);
       const data = await formationService.getFormationById(id);
-      setFormation(data);
-    } catch (error) {
+      setFormation(data);    } catch (error) {
       console.error("Erreur lors de la récupération de la formation:", error);
       setError("Impossible de récupérer les détails de la formation.");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de récupérer les détails de la formation."
-      });
+      showToast.error("Impossible de récupérer les détails de la formation.");
     } finally {
       setLoading(false);
     }
@@ -110,36 +104,24 @@ const FormationForm = ({ formationId = null }) => {
       setSaving(true);
       setError(null);
       
-      let response;
-      if (formationId) {
+      let response;      if (formationId) {
         // Mise à jour d'une formation existante
         response = await formationService.updateFormation(formationId, formation);
-        toast({
-          title: "Formation mise à jour",
-          description: "La formation a été mise à jour avec succès."
-        });
+        showToast.success("La formation a été mise à jour avec succès.", "Formation mise à jour");
       } else {
         // Création d'une nouvelle formation
         response = await formationService.createFormation(formation);
-        toast({
-          title: "Formation créée",
-          description: "La formation a été créée avec succès."
-        });
+        showToast.success("La formation a été créée avec succès.", "Formation créée");
       }
       
       // Redirection vers la liste des formations après un court délai
       setTimeout(() => {
         navigate("/admin/formations");
       }, 1000);
-      
-    } catch (error) {
+        } catch (error) {
       console.error("Erreur lors de la sauvegarde de la formation:", error);
       setError("Impossible de sauvegarder la formation. Veuillez réessayer plus tard.");
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de sauvegarder la formation."
-      });
+      showToast.error("Impossible de sauvegarder la formation.");
     } finally {
       setSaving(false);
     }

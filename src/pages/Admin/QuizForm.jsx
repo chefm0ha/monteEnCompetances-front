@@ -12,17 +12,15 @@ import {
   Save, 
   Loader2, 
   Plus,
-  Eye,
-  Trash2
+  Eye,  Trash2
 } from "lucide-react";
-import { useToast } from "../../hooks/use-toast";
+import { showToast } from "../../utils/sweetAlert";
 import { quizService } from "../../services/quizService";
 import QuizManager from "./QuizManager";
 import QuizPreviewModal from "./QuizPreviewModal";
 import Swal from 'sweetalert2'
 
 const QuizForm = ({ moduleId, onQuizSaved = null, readOnly = false }) => {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -68,15 +66,11 @@ const QuizForm = ({ moduleId, onQuizSaved = null, readOnly = false }) => {
     try {
       // Refresh the quiz list
       await fetchQuizzes();
-      
-      if (onQuizSaved) {
+        if (onQuizSaved) {
         onQuizSaved(savedQuiz);
       }
       
-      toast({
-        title: "Quiz sauvegardé",
-        description: "Le quiz a été sauvegardé avec succès."
-      });
+      showToast.success("Le quiz a été sauvegardé avec succès.", "Quiz sauvegardé");
     } catch (error) {
       console.error("Error after saving quiz:", error);
     }
