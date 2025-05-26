@@ -15,7 +15,7 @@ const CollaborateurForm = ({
   cancelLabel = "Annuler" 
 }) => {
   // Liste des postes pour les sélecteurs
-  const postes = ["Développeur", "Designer", "Chef de projet", "Marketing", "RH", "Finance", "Autre"];
+  const postes = ["stagiaire", "embauche"];
   
   const [formData, setFormData] = useState({
     firstName: "",

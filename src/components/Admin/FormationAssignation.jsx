@@ -22,23 +22,10 @@ const FormationAssignation = ({ formationId = null }) => {
   const [selectedFormation, setSelectedFormation] = useState(formationId || "");
   const [collaborateurs, setCollaborateurs] = useState([]);
   const [selectedCollaborateurs, setSelectedCollaborateurs] = useState([]);
-  const [alreadyAssigned, setAlreadyAssigned] = useState([]);
-  const [activeTab, setActiveTab] = useState("assign");
+  const [alreadyAssigned, setAlreadyAssigned] = useState([]);  const [activeTab, setActiveTab] = useState("assign");
 
   // Liste des postes pour le filtre
-  const postes = [
-    "Développeur",
-    "Designer",
-    "Chef de projet",
-    "Ressources Humaines",
-    "Marketing",
-    "Commercial",
-    "Support",
-    "Finance",
-    "Direction",
-    "Administratif",
-    "Autre"
-  ];
+  const postes = ["stagiaire", "embauche"];
 
   useEffect(() => {
     fetchData();
@@ -78,12 +65,11 @@ const FormationAssignation = ({ formationId = null }) => {
       setLoading(false);
     }
   };
-
   const fetchCollaborateurs = async () => {
     try {
       // Filtres pour la récupération des collaborateurs
       const filters = {};
-      if (selectedPoste) {
+      if (selectedPoste && selectedPoste !== "all") {
         filters.poste = selectedPoste;
       }
       if (searchTerm) {
@@ -332,9 +318,8 @@ const FormationAssignation = ({ formationId = null }) => {
                   >
                     <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="Tous les postes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Tous les postes</SelectItem>
+                    </SelectTrigger>                    <SelectContent>
+                      <SelectItem value="all">Tous les postes</SelectItem>
                       {postes.map((poste) => (
                         <SelectItem key={poste} value={poste}>
                           {poste}

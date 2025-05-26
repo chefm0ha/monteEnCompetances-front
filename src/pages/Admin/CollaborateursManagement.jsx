@@ -49,7 +49,7 @@ const CollaborateursManagement = () => {
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false)
 
   // Liste des postes pour les sélecteurs
-  const postes = ["Développeur", "Designer", "Chef de projet", "Marketing", "RH", "Finance", "Autre"]
+  const postes = ["stagiaire", "embauche"]
 
   useEffect(() => {
     // Vérifier si l'utilisateur est un administrateur

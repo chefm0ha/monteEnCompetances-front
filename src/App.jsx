@@ -17,6 +17,7 @@ import FormationsManagement from "./pages/Admin/FormationsManagement"
 import FormationEdit from "./pages/Admin/FormationEdit"
 import ModulesManagement from "./pages/Admin/ModulesManagement"
 import ModuleEdit from "./pages/Admin/ModuleEdit"
+import AffectationsManagement from "./pages/Admin/AffectationsManagement"
 import FormationDetails from "./pages/Collaborateur/FormationDetails"
 import ModuleContent from "./pages/Collaborateur/ModuleContent"
 import Quiz from "./pages/Collaborateur/Quiz"
@@ -68,6 +69,9 @@ function App() {
                     <Route path="/admin/modules" element={<ModulesManagement />} />
                     <Route path="/admin/modules/new" element={<ModuleEdit />} />
                     <Route path="/admin/modules/:id" element={<ModuleEdit />} />
+
+                    {/* Affectations management */}
+                    <Route path="/admin/affectations" element={<AffectationsManagement />} />
                   </Route>
                 </Route>
 

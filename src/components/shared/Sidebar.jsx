@@ -24,7 +24,8 @@ import {
   ChevronRight,
   BookOpen,
   FolderOpen,
-  FileText
+  FileText,
+  UserCheck
 } from "lucide-react"
 import { APP_SETTINGS } from "../../config"
 import { cn } from "../../lib/utils"
@@ -67,6 +68,12 @@ const Sidebar = () => {
         icon: <FolderOpen className="h-5 w-5" />,
         label: "Modules",
         path: "/admin/modules",
+        adminOnly: true
+      },
+      {
+        icon: <UserCheck className="h-5 w-5" />,
+        label: "Affectation des formations",
+        path: "/admin/affectations",
         adminOnly: true
       }
     ] : [

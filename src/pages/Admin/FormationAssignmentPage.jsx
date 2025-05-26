@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Checkbox } from "../components/ui/checkbox";
-import { Alert, AlertDescription } from "../components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
-import { Progress } from "../components/ui/progress";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Alert, AlertDescription } from "../../components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
+import { Progress } from "../../components/ui/progress";
 import { 
   ArrowLeft, 
   Loader2, 
@@ -21,8 +21,8 @@ import {
   Clock,
   RefreshCw
 } from "lucide-react";
-import { formationService } from "../services/formationService";
-import { collaborateurService } from "../services/collaborateurService";
+import { formationService } from "../../services/formationService";
+import { collaborateurService } from "../../services/collaborateurService";
 import Swal from 'sweetalert2';
 
 const FormationAssignmentPage = () => {
@@ -36,23 +36,10 @@ const FormationAssignmentPage = () => {
   const [assignedCollaborateurs, setAssignedCollaborateurs] = useState([]);
   const [selectedCollaborateurs, setSelectedCollaborateurs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPoste, setSelectedPoste] = useState("");
-  const [activeTab, setActiveTab] = useState("assign");
+  const [selectedPoste, setSelectedPoste] = useState("");  const [activeTab, setActiveTab] = useState("assign");
 
   // Liste des postes pour le filtre
-  const postes = [
-    "Développeur",
-    "Designer",
-    "Chef de projet", 
-    "Ressources Humaines", 
-    "Marketing", 
-    "Commercial", 
-    "Support", 
-    "Finance", 
-    "Direction", 
-    "Administratif", 
-    "Autre"
-  ];
+  const postes = ["stagiaire", "embauche"];
 
   useEffect(() => {
     fetchData();
@@ -84,11 +71,10 @@ const FormationAssignmentPage = () => {
       setLoading(false);
     }
   };
-
   const fetchCollaborateurs = async () => {
     try {
       const filters = {};
-      if (selectedPoste) {
+      if (selectedPoste && selectedPoste !== "all") {
         filters.poste = selectedPoste;
       }
       if (searchTerm) {
@@ -338,9 +324,8 @@ const FormationAssignmentPage = () => {
                   <Select value={selectedPoste} onValueChange={handleSelectPoste}>
                     <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="Tous les postes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Tous les postes</SelectItem>
+                    </SelectTrigger>                    <SelectContent>
+                      <SelectItem value="all">Tous les postes</SelectItem>
                       {postes.map((poste) => (
                         <SelectItem key={poste} value={poste}>
                           {poste}

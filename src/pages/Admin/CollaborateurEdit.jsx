@@ -14,8 +14,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  DialogHeader,  DialogTitle,
 } from "../../components/ui/dialog"
 import CollaborateurForm from "../../components/Collaborateur/CollaborateurForm"
 
@@ -26,8 +25,8 @@ const CollaborateurEdit = () => {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
-  const [formError, setFormError] = useState("")
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [formError, setFormError] = useState("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isNewCollaborateur, setIsNewCollaborateur] = useState(false)
   const [collaborateur, setCollaborateur] = useState({
     firstName: "",
@@ -39,7 +38,7 @@ const CollaborateurEdit = () => {
   })
 
   // Liste des postes pour les sélecteurs
-  const postes = ["Développeur", "Designer", "Chef de projet", "Marketing", "RH", "Finance", "Autre"]
+  const postes = ["stagiaire", "embauche"]
 
   useEffect(() => {
     // Vérifier si l'utilisateur est un administrateur
