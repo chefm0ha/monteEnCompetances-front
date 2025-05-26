@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
+import { Textarea } from "../../components/ui/textarea"
 import { Label } from "../../components/ui/label"
 import {
   Select,
@@ -27,6 +28,7 @@ const ModuleEdit = () => {
   const [formations, setFormations] = useState([])
   const [module, setModule] = useState({
     titre: "",
+    description: "", // Added description field
     formationId: "",
     contents: []
   })
@@ -61,6 +63,15 @@ const ModuleEdit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!module.titre.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Le titre est requis."
+      })
+      return
+    }
 
     if (!module.formationId) {
       toast({
@@ -141,6 +152,18 @@ const ModuleEdit = () => {
                 onChange={handleChange}
                 placeholder="Entrez le titre du module"
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={module.description}
+                onChange={handleChange}
+                placeholder="Entrez la description du module"
+                rows={3}
               />
             </div>
 

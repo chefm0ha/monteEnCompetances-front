@@ -28,13 +28,13 @@ API.interceptors.request.use(
 
 export const moduleService = {
   /**
-   * Récupère tous les modules
+   * Récupère tous les modules avec leurs informations de formation
    * 
-   * @returns {Promise<Array>} - Liste des modules
+   * @returns {Promise<Array>} - Liste des modules avec formation info
    */
   getAllModules: async () => {
     try {
-      const response = await API.get("/api/admin/modules");
+      const response = await API.get("/api/admin/formations/all-modules");
       return response.data;
     } catch (error) {
       console.error("Erreur lors de la récupération des modules:", error);
@@ -132,7 +132,7 @@ export const moduleService = {
         }));
       }
 
-      const response = await API.put(`/api/admin/modules/${moduleId}`, modulePayload);
+      const response = await API.put(`/api/admin/formations/modules/${moduleId}`, modulePayload);
       return response.data;
     } catch (error) {
       console.error(`Erreur lors de la mise à jour du module ${moduleId}:`, error);

@@ -78,15 +78,10 @@ const ModulesManagement = () => {
   }
 
   const filteredModules = modules.filter(module => {
-    const matchesSearch = module.title && module.title.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFormation = !selectedFormation || selectedFormation === "all" || module.formationId === selectedFormation
+    const matchesSearch = module.titre && module.titre.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFormation = !selectedFormation || selectedFormation === "all" || module.formationId.toString() === selectedFormation
     return matchesSearch && matchesFormation
   })
-
-  const getFormationTitle = (formationId) => {
-    const formation = formations.find(f => f.id === formationId)
-    return formation ? formation.titre : "Formation inconnue"
-  }
 
   return (
     <div className="space-y-6 p-6">
@@ -123,7 +118,7 @@ const ModulesManagement = () => {
               <SelectContent>
                 <SelectItem value="all">Toutes les formations</SelectItem>
                 {formations.map((formation) => (
-                  <SelectItem key={formation.id} value={formation.id}>
+                  <SelectItem key={formation.id} value={formation.id.toString()}>
                     {formation.titre}
                   </SelectItem>
                 ))}
@@ -138,37 +133,33 @@ const ModulesManagement = () => {
                   <TableHead>Titre</TableHead>
                   <TableHead>Formation</TableHead>
                   <TableHead>Contenus</TableHead>
-                  <TableHead>Quiz</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">
+                    <TableCell colSpan={4} className="text-center">
                       Chargement...
                     </TableCell>
                   </TableRow>
                 ) : filteredModules.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center">
+                    <TableCell colSpan={4} className="text-center">
                       Aucun module trouvé
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredModules.map((module) => (
                     <TableRow key={module.id}>
-                      <TableCell>{module.title}</TableCell>
+                      <TableCell>{module.titre}</TableCell>
                       <TableCell>
                         <div className="flex items-center">
                           <BookOpen className="h-4 w-4 mr-2 text-gray-500" />
-                          {getFormationTitle(module.formationId)}
+                          {module.formationTitre}
                         </div>
                       </TableCell>
-                      <TableCell>{module.contents?.length || 0}</TableCell>
-                      <TableCell>
-                        {module.quiz ? "Oui" : "Non"}
-                      </TableCell>
+                      <TableCell>{module.nombreSupports || 0}</TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
@@ -197,4 +188,4 @@ const ModulesManagement = () => {
   )
 }
 
-export default ModulesManagement 
+export default ModulesManagement
