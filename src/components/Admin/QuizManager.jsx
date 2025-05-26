@@ -12,7 +12,6 @@ import {
   AlertCircle, 
   Plus, 
   Trash2, 
-  Move, 
   Check, 
   Save, 
   Loader2, 
@@ -27,11 +26,9 @@ import QuizPreviewModal from "./QuizPreviewModal";
 const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false }) => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [quiz, setQuiz] = useState(
+  const [error, setError] = useState(null);  const [quiz, setQuiz] = useState(
     initialQuiz ? quizService.transformQuizFromBackend(initialQuiz) : {
       titre: "Quiz d'évaluation",
-      description: "Évaluez vos connaissances sur ce module",
       moduleId: moduleId,
       seuilReussite: 70,
       questions: [],
@@ -86,39 +83,10 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
       questions: [...prev.questions, newQuestion],
     }));
   };
-
   const removeQuestion = (questionId) => {
     setQuiz((prev) => ({
       ...prev,
       questions: prev.questions.filter((q) => q.id !== questionId),
-    }));
-  };
-
-  const moveQuestionUp = (index) => {
-    if (index === 0) return;
-
-    const newQuestions = [...quiz.questions];
-    const temp = newQuestions[index];
-    newQuestions[index] = newQuestions[index - 1];
-    newQuestions[index - 1] = temp;
-
-    setQuiz((prev) => ({
-      ...prev,
-      questions: newQuestions,
-    }));
-  };
-
-  const moveQuestionDown = (index) => {
-    if (index === quiz.questions.length - 1) return;
-
-    const newQuestions = [...quiz.questions];
-    const temp = newQuestions[index];
-    newQuestions[index] = newQuestions[index + 1];
-    newQuestions[index + 1] = temp;
-
-    setQuiz((prev) => ({
-      ...prev,
-      questions: newQuestions,
     }));
   };
 
@@ -332,8 +300,7 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <div className="grid gap-4">
-            <div>
+          <div className="grid gap-4">            <div>
               <Label htmlFor="titre">Titre du quiz</Label>
               <Input
                 id="titre"
@@ -342,17 +309,6 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
                 onChange={handleChange}
                 disabled={readOnly}
                 placeholder="Entrez le titre du quiz"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={quiz.description}
-                onChange={handleChange}
-                disabled={readOnly}
-                placeholder="Entrez une description pour le quiz"
               />
             </div>
             <div>
@@ -374,25 +330,13 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
               ) : (
                 <div className="space-y-4">
                   {quiz.questions.map((question, index) => (
-                    <div key={question.id} className="p-4 border rounded-md">
-                      <div className="flex justify-between items-center mb-2">
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => moveQuestionUp(index)}
-                            disabled={readOnly || index === 0}
-                          >
-                            <Move className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => moveQuestionDown(index)}
-                            disabled={readOnly || index === quiz.questions.length - 1}
-                          >
-                            <Move className="w-4 h-4 rotate-180" />
-                          </Button>
+                    <div key={question.id} className="p-4 border rounded-md">                      <div className="flex justify-between items-center mb-2">
+                        <div>
+                          <Badge variant="outline">
+                            Valeur: {getQuestionPointsValue()}%
+                          </Badge>
+                        </div>
+                        <div>
                           <Button
                             variant="destructive"
                             size="icon"
@@ -401,11 +345,6 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
-                        </div>
-                        <div>
-                          <Badge variant="outline">
-                            Valeur: {getQuestionPointsValue()}%
-                          </Badge>
                         </div>
                       </div>
                       <div className="mb-2">
@@ -491,10 +430,9 @@ const QuizManager = ({ moduleId, initialQuiz = null, onSave, readOnly = false })
             Prévisualiser le quiz
           </Button>
         </CardFooter>
-      </Card>
-      <QuizPreviewModal
+      </Card>      <QuizPreviewModal
         open={previewOpen}
-        onClose={() => setPreviewOpen(false)}
+        onOpenChange={setPreviewOpen}
         quiz={quiz}
       />
     </div>

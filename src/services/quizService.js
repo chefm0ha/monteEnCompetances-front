@@ -257,11 +257,9 @@ export const quizService = {
 
   /**
    * Transform frontend quiz data to backend format
-   */
-  transformQuizForBackend: (frontendQuiz) => {
+   */  transformQuizForBackend: (frontendQuiz) => {
     return {
       titre: frontendQuiz.titre,
-      description: frontendQuiz.description,
       seuilReussite: frontendQuiz.seuilReussite,
       questions: frontendQuiz.questions?.map(question => ({
         contenu: question.contenu,
@@ -276,11 +274,9 @@ export const quizService = {
   /**
    * Transform backend quiz data to frontend format
    */
-  transformQuizFromBackend: (backendQuiz) => {
-    return {
+  transformQuizFromBackend: (backendQuiz) => {    return {
       id: backendQuiz.id,
       titre: backendQuiz.titre,
-      description: backendQuiz.description,
       seuilReussite: backendQuiz.seuilReussite,
       moduleId: backendQuiz.moduleId,
       questions: backendQuiz.questions?.map(question => ({

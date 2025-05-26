@@ -212,11 +212,9 @@ const QuizPreview = ({ quiz, onClose }) => {
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
 
-  return (
-    <Card>
+  return (    <Card>
       <CardHeader>
         <CardTitle>{quiz.titre}</CardTitle>
-        <CardDescription>{quiz.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex justify-between items-center text-sm text-gray-500">

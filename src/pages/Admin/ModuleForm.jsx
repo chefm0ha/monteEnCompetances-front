@@ -29,11 +29,9 @@ const ModuleForm = () => {
     titre: "",
     description: "",
     formationId: formationId || "",
-    supports: [],
-    hasQuiz: false,
+    supports: [],    hasQuiz: false,
     quiz: {
       titre: "Quiz du module",
-      description: "Évaluez vos connaissances sur ce module",
       moduleId: moduleId || "",
       seuilReussite: 70,
       questions: []
@@ -60,12 +58,10 @@ const ModuleForm = () => {
     try {
       setLoading(true);
       const data = await moduleService.getModuleById(id);
-      
-      // Initialize the quiz state properly
+        // Initialize the quiz state properly
       const hasQuiz = data.quizs && data.quizs.length > 0;
       const quiz = hasQuiz ? data.quizs[0] : {
         titre: "Quiz du module",
-        description: "Évaluez vos connaissances sur ce module",
         moduleId: id,
         seuilReussite: 70,
         questions: []

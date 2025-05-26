@@ -40,11 +40,9 @@ const ModuleQuizManager = ({ moduleId, initialHasQuiz = false, initialQuiz = nul
     } catch (error) {
       console.error("Erreur lors de la récupération du quiz:", error);
       setError("Impossible de récupérer le quiz. Il sera créé à partir de zéro.");
-      
-      // Initialiser un quiz vide
+        // Initialiser un quiz vide
       setQuiz({
         titre: "Quiz d'évaluation",
-        description: "Évaluez vos connaissances sur ce module",
         moduleId: moduleId,
         seuilReussite: 70,
         questions: [],
@@ -56,12 +54,10 @@ const ModuleQuizManager = ({ moduleId, initialHasQuiz = false, initialQuiz = nul
 
   const handleToggleQuiz = (checked) => {
     setHasQuiz(checked);
-    
-    // Si on active le quiz et qu'il n'y a pas déjà un, en créer un nouveau
+      // Si on active le quiz et qu'il n'y a pas déjà un, en créer un nouveau
     if (checked && !quiz) {
       setQuiz({
         titre: "Quiz d'évaluation",
-        description: "Évaluez vos connaissances sur ce module",
         moduleId: moduleId,
         seuilReussite: 70,
         questions: [],

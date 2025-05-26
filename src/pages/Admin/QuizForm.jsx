@@ -162,11 +162,9 @@ const QuizForm = ({ moduleId, onQuizSaved = null, readOnly = false }) => {
             <div className="space-y-4">
               {quizzes.map((quiz) => (
                 <Card key={quiz.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
+                  <CardHeader>                    <div className="flex justify-between items-start">
                       <div>
                         <CardTitle>{quiz.titre}</CardTitle>
-                        <CardDescription>{quiz.description}</CardDescription>
                       </div>
                       <div className="flex space-x-2">
                         <Button
