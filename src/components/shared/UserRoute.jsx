@@ -15,9 +15,8 @@ const UserRoute = () => {
   if (currentUser?.role === "ADMIN") {
     return <Navigate to="/admin/dashboard" replace />
   }
-
-  // Allow only regular users
-  if (!currentUser || currentUser.role !== "USER") {
+  // Allow only collaborateurs
+  if (!currentUser || currentUser.role !== "COLLABORATEUR") {
     return <Navigate to="/login" replace />
   }
 

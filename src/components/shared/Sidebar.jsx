@@ -113,15 +113,12 @@ const Sidebar = () => {
     )}>
       {/* Logo, notifications and toggle button */}
       <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center">
+        <div className="flex items-center justify-center flex-1">
           <img 
             src={APP_SETTINGS.logoUrl || "/placeholder.svg"} 
             alt="Logo" 
-            className="h-8 w-8"
+            className="h-8 w-16"
           />
-          {!collapsed && (
-            <span className="ml-2 text-sm font-semibold">Plateforme de Formation</span>
-          )}
         </div>
         <div className="flex items-center gap-1">
           {/* Notifications - only show for admins */}
