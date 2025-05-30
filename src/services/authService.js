@@ -34,6 +34,7 @@ API.interceptors.response.use(
     console.log("Response error interceptor:", error);
     if (error.response && error.response.status === 401) {
       localStorage.removeItem("token")
+      localStorage.removeItem("userData")
       window.location.href = "/login"
     }
     return Promise.reject(error)
@@ -56,11 +57,25 @@ export const authService = {
       });
       
       console.log("Login successful:", response);
+      console.log("Response data structure:", {
+        hasUserDTO: !!response.data.userDTO,
+        hasToken: !!response.data.token,
+        userDTOKeys: response.data.userDTO ? Object.keys(response.data.userDTO) : [],
+        userId: response.data.userDTO?.id,
+        userIdType: typeof response.data.userDTO?.id
+      });
+      
+      // Validate the response structure
+      if (!response.data || !response.data.token || !response.data.userDTO) {
+        throw new Error("Invalid response format from server");
+      }
+
+      if (!response.data.userDTO.id) {
+        throw new Error("User ID missing in response");
+      }
       
       // Store token if successful
-      if (response.data && response.data.token) {
-        localStorage.setItem("token", response.data.token);
-      }
+      localStorage.setItem("token", response.data.token);
       
       return response.data;
     } catch (error) {
@@ -80,6 +95,19 @@ export const authService = {
   getCurrentUser: async () => {
     try {
       const response = await API.get("/auth/me");
+      
+      // Ensure the response has the required ID field
+      if (!response.data || !response.data.id) {
+        console.error("❌ getCurrentUser response missing ID:", response.data);
+        throw new Error("Invalid user data received from server");
+      }
+      
+      console.log("✅ getCurrentUser successful:", {
+        id: response.data.id,
+        email: response.data.email,
+        role: response.data.role
+      });
+      
       return response.data;
     } catch (error) {
       console.error("Error getting current user:", error);
@@ -90,7 +118,11 @@ export const authService = {
   refreshToken: async () => {
     try {
       const response = await API.post("/auth/refresh-token");
-      localStorage.setItem("token", response.data.token);
+      
+      if (response.data && response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
+      
       return response.data;
     } catch (error) {
       console.error("Error refreshing token:", error);

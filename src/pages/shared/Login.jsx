@@ -1,3 +1,4 @@
+// src/pages/shared/Login.jsx
 "use client"
 
 import { useState } from "react"
@@ -35,6 +36,9 @@ const Login = () => {
 
     const success = await login(email, password)
     if (success) {
+      // The redirect logic is now handled in the AuthContext after successful login
+      // or we can get the user role from the response and redirect accordingly
+      // For now, navigate to dashboard and let the routing handle the redirect
       navigate("/dashboard")
     }
   }
@@ -130,4 +134,3 @@ const Login = () => {
 }
 
 export default Login
-

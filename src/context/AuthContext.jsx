@@ -44,14 +44,37 @@ export const AuthProvider = ({ children }) => {
       // Si nous avons déjà les données utilisateur dans le localStorage, utilisons-les
       const storedUserData = localStorage.getItem("userData")
       if (storedUserData) {
-        setCurrentUser(JSON.parse(storedUserData))
-        setLoading(false)
-        return
+        const userData = JSON.parse(storedUserData)
+        console.log("📱 Loading user from localStorage:", userData)
+        
+        // Ensure the user data has the required ID field
+        if (userData && userData.id) {
+          setCurrentUser(userData)
+          setLoading(false)
+          return
+        } else {
+          console.warn("⚠️ Stored user data missing ID, fetching from API")
+          // Clear invalid stored data
+          localStorage.removeItem("userData")
+        }
       }
 
       // Sinon, essayons de récupérer les données utilisateur depuis l'API
       const userData = await authService.getCurrentUser(token)
-      setCurrentUser(userData)
+      console.log("📱 Fetched user from API:", userData)
+      
+      // Ensure the API response has the required ID field
+      if (userData && userData.id) {
+        // Store the complete user data
+        localStorage.setItem("userData", JSON.stringify(userData))
+        setCurrentUser(userData)
+      } else {
+        console.error("❌ API response missing user ID:", userData)
+        setError("Invalid user data received from server")
+        logout()
+        return
+      }
+      
       setLoading(false)
     } catch (error) {
       console.error("Error fetching user data:", error)
@@ -72,14 +95,36 @@ export const AuthProvider = ({ children }) => {
       // Extraire le token et les données utilisateur de la réponse
       const { token, userDTO } = response
 
+      // Vérifier que nous avons bien reçu un ID utilisateur
+      if (!userDTO || !userDTO.id) {
+        console.error("❌ Login response missing user ID:", response)
+        setError("Invalid response from server - missing user identification")
+        return false
+      }
+
+      console.log("✅ User ID received:", userDTO.id, "Type:", typeof userDTO.id)
+
       // Stocker le token dans localStorage
       localStorage.setItem("token", token)
 
       // Stocker les données utilisateur dans localStorage pour éviter des appels API supplémentaires
-      localStorage.setItem("userData", JSON.stringify(userDTO))
+      // Ensure we store the complete userDTO with the ID
+      const userDataToStore = {
+        id: userDTO.id,
+        email: userDTO.email,
+        firstName: userDTO.firstName,
+        lastName: userDTO.lastName,
+        role: userDTO.role,
+        poste: userDTO.poste || null,
+        // Include any other fields that might be present
+        ...userDTO
+      }
+      
+      console.log("💾 Storing user data:", userDataToStore)
+      localStorage.setItem("userData", JSON.stringify(userDataToStore))
 
       // Mettre à jour l'état avec les données utilisateur
-      setCurrentUser(userDTO)
+      setCurrentUser(userDataToStore)
 
       return true
     } catch (error) {
@@ -92,9 +137,11 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = () => {
+    console.log("🚪 Logging out user")
     localStorage.removeItem("token")
     localStorage.removeItem("userData")
     setCurrentUser(null)
+    setError(null)
   }
 
   const value = {

@@ -1,13 +1,14 @@
 // src/components/shared/ProtectedRoute.jsx
 "use client"
 
-import { Navigate, Outlet } from "react-router-dom"
+import { Navigate, Outlet, useLocation } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 import Layout from "./Layout"
 import LoadingScreen from "./LoadingScreen"
 
 const ProtectedRoute = () => {
   const { currentUser, loading } = useAuth()
+  const location = useLocation()
 
   if (loading) {
     return <LoadingScreen />
@@ -15,6 +16,14 @@ const ProtectedRoute = () => {
 
   if (!currentUser) {
     return <Navigate to="/login" replace />
+  }
+
+  // Handle dashboard route redirect based on role
+  if (location.pathname === "/dashboard") {
+    if (currentUser.role === "ADMIN") {
+      return <Navigate to="/admin/dashboard" replace />
+    }
+    // For COLLABORATEUR, stay on /dashboard (handled by UserRoute)
   }
 
   return (

@@ -25,7 +25,9 @@ import {
   BookOpen,
   FolderOpen,
   FileText,
-  UserCheck
+  UserCheck,
+  GraduationCap,
+  Award
 } from "lucide-react"
 import { APP_SETTINGS } from "../../config"
 import { cn } from "../../lib/utils"
@@ -44,48 +46,65 @@ const Sidebar = () => {
   }
 
   const isAdmin = currentUser?.role === "ADMIN"
+  const isCollaborateur = currentUser?.role === "COLLABORATEUR"
   
-  const menuItems = [
-    ...(isAdmin ? [
-      {
-        icon: <BarChart className="h-5 w-5" />,
-        label: "Tableau de bord",
-        path: "/admin/dashboard",
-        adminOnly: true
-      },
-      {
-        icon: <Users className="h-5 w-5" />,
-        label: "Collaborateurs",
-        path: "/admin/collaborateurs",
-        adminOnly: true
-      },
-      {
-        icon: <BookOpen className="h-5 w-5" />,
-        label: "Formations",
-        path: "/admin/formations",
-        adminOnly: true
-      },
-      {
-        icon: <FolderOpen className="h-5 w-5" />,
-        label: "Modules",
-        path: "/admin/modules",
-        adminOnly: true
-      },
-      {
-        icon: <UserCheck className="h-5 w-5" />,
-        label: "Affectation des formations",
-        path: "/admin/affectations",
-        adminOnly: true
-      }
-    ] : [
-      {
-        icon: <Home className="h-5 w-5" />,
-        label: "Tableau de bord",
-        path: "/dashboard",
-        adminOnly: false
-      }
-    ])
+  // Admin menu items
+  const adminMenuItems = [
+    {
+      icon: <BarChart className="h-5 w-5" />,
+      label: "Tableau de bord",
+      path: "/admin/dashboard",
+      adminOnly: true
+    },
+    {
+      icon: <Users className="h-5 w-5" />,
+      label: "Collaborateurs",
+      path: "/admin/collaborateurs",
+      adminOnly: true
+    },
+    {
+      icon: <BookOpen className="h-5 w-5" />,
+      label: "Formations",
+      path: "/admin/formations",
+      adminOnly: true
+    },
+    {
+      icon: <FolderOpen className="h-5 w-5" />,
+      label: "Modules",
+      path: "/admin/modules",
+      adminOnly: true
+    },
+    {
+      icon: <UserCheck className="h-5 w-5" />,
+      label: "Affectation des formations",
+      path: "/admin/affectations",
+      adminOnly: true
+    }
   ]
+
+  // Collaborator menu items
+  const collaboratorMenuItems = [
+    {
+      icon: <Home className="h-5 w-5" />,
+      label: "Tableau de bord",
+      path: "/dashboard",
+      adminOnly: false
+    },
+    {
+      icon: <GraduationCap className="h-5 w-5" />,
+      label: "Mes formations",
+      path: "/mes-formations",
+      adminOnly: false
+    },
+    {
+      icon: <Award className="h-5 w-5" />,
+      label: "Mes certificats",
+      path: "/mes-certificats",
+      adminOnly: false
+    }
+  ]
+
+  const menuItems = isAdmin ? adminMenuItems : collaboratorMenuItems
 
   return (
     <div className={cn(
@@ -118,15 +137,14 @@ const Sidebar = () => {
         </div>
       </div>
       
-      {/* Admin badge */}
-      {isAdmin && (
-        <div className={cn(
-          "mx-auto mt-2 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium",
-          collapsed ? "w-12 text-center" : "w-auto"
-        )}>
-          Admin
-        </div>
-      )}
+      {/* Role badge */}
+      <div className={cn(
+        "mx-auto mt-2 px-2 py-1 rounded text-xs font-medium",
+        isAdmin ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800",
+        collapsed ? "w-12 text-center" : "w-auto"
+      )}>
+        {isAdmin ? "Admin" : "Collaborateur"}
+      </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-2">

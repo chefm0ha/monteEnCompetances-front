@@ -19,6 +19,8 @@ import FormationEdit from "./pages/Admin/FormationEdit"
 import ModulesManagement from "./pages/Admin/ModulesManagement"
 import ModuleEdit from "./pages/Admin/ModuleEdit"
 import AffectationsManagement from "./pages/Admin/AffectationsManagement"
+import MesFormations from "./pages/Collaborateur/MesFormations"
+import MesCertificats from "./pages/Collaborateur/MesCertificats"
 import FormationDetails from "./pages/Collaborateur/FormationDetails"
 import ModuleContent from "./pages/Collaborateur/ModuleContent"
 import Quiz from "./pages/Collaborateur/Quiz"
@@ -45,9 +47,11 @@ function App() {
                     {/* Shared routes for both admin and users */}
                     <Route path="/profile" element={<Profile />} />
                     
-                    {/* User routes */}
+                    {/* Collaborator/User routes */}
                     <Route element={<UserRoute />}>
                       <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/mes-formations" element={<MesFormations />} />
+                      <Route path="/mes-certificats" element={<MesCertificats />} />
                       <Route path="/formation/:formationId" element={<FormationDetails />} />
                       <Route path="/formation/:formationId/module/:moduleId" element={<ModuleContent />} />
                       <Route path="/formation/:formationId/module/:moduleId/quiz" element={<Quiz />} />

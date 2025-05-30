@@ -23,6 +23,7 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false)
 
   const isAdmin = currentUser?.role === "ADMIN"
+  
   // Debug log to track user state
   useEffect(() => {
     console.log("🔍 NotificationProvider - Auth state changed:", {
@@ -31,42 +32,28 @@ export const NotificationProvider = ({ children }) => {
         role: currentUser.role,
         email: currentUser.email,
         firstName: currentUser.firstName,
-        lastName: currentUser.lastName,
-        fullObject: currentUser
+        lastName: currentUser.lastName
       } : null,
       authLoading,
       isAdmin
-    })  }, [currentUser, authLoading, isAdmin])
-
-  // Helper function to get user ID from currentUser object
-  const getUserId = useCallback(() => {
-    if (!currentUser) return null
-    
-    // Check common ID field names
-    return currentUser.id || 
-           currentUser.userId || 
-           currentUser.uuid || 
-           currentUser._id || 
-           currentUser.sub ||
-           null
-  }, [currentUser])
+    })
+  }, [currentUser, authLoading, isAdmin])
 
   // Memoize the fetch functions to prevent unnecessary re-renders
   const fetchUnseenCount = useCallback(async () => {
-    const userId = getUserId()
-    if (!currentUser || !userId) {
-      console.log("🔔 No current user or user ID, skipping unseen count fetch. User:", currentUser, "ID:", userId)
+    if (!currentUser?.id) {
+      console.log("🔔 No current user or user ID, skipping unseen count fetch")
       setUnseenCount(0)
       return
     }
 
     try {
-      console.log("🔔 Fetching unseen notifications count for user:", userId, "isAdmin:", isAdmin)
+      console.log("🔔 Fetching unseen notifications count for user:", currentUser.id, "isAdmin:", isAdmin)
       console.log("🔔 API URL:", API_URL || "Not configured")
       
       const count = isAdmin 
-        ? await notificationService.getUnseenAdminNotificationsCount(userId)
-        : await notificationService.getUnseenUserNotificationsCount(userId)
+        ? await notificationService.getUnseenAdminNotificationsCount(currentUser.id)
+        : await notificationService.getUnseenUserNotificationsCount(currentUser.id)
       
       console.log("🔔 Unseen count received:", count)
       setUnseenCount(count)
@@ -82,7 +69,7 @@ export const NotificationProvider = ({ children }) => {
       })
       // Don't reset count on error, keep previous value
     }
-  }, [currentUser, isAdmin, getUserId])
+  }, [currentUser?.id, isAdmin])
 
   const fetchLatestNotifications = useCallback(async () => {
     if (!currentUser?.id) {
@@ -114,7 +101,8 @@ export const NotificationProvider = ({ children }) => {
       // Don't clear notifications on error, keep previous ones
     } finally {
       setLoading(false)
-    }  }, [currentUser?.id, isAdmin])
+    }
+  }, [currentUser?.id, isAdmin])
 
   // Fetch unseen count when user changes or component mounts
   useEffect(() => {
@@ -124,24 +112,22 @@ export const NotificationProvider = ({ children }) => {
       return
     }
     
-    const userId = getUserId()
-    if (currentUser && userId) {
-      console.log("🔔 User authenticated, fetching unseen count for user:", userId, "role:", currentUser.role)
+    if (currentUser?.id) {
+      console.log("🔔 User authenticated, fetching unseen count for user:", currentUser.id, "role:", currentUser.role)
       fetchUnseenCount()
     } else {
-      console.log("🔔 No authenticated user or user ID, resetting notification state. User:", currentUser, "ID:", userId)
+      console.log("🔔 No authenticated user, resetting notification state")
       setUnseenCount(0)
       setNotifications([])
     }
-  }, [currentUser, authLoading, fetchUnseenCount, getUserId])
+  }, [currentUser?.id, authLoading, fetchUnseenCount])
 
-  // Set up polling for new notifications every 30 seconds
+  // Set up polling for new notifications every 15 seconds
   useEffect(() => {
     // Don't start polling if auth is still loading or no user
-    const userId = getUserId()
-    if (authLoading || !currentUser || !userId) return
+    if (authLoading || !currentUser?.id) return
 
-    console.log("🔔 Setting up notification polling for user:", userId)
+    console.log("🔔 Setting up notification polling for user:", currentUser.id)
     
     // Initial fetch
     fetchUnseenCount()
@@ -156,19 +142,18 @@ export const NotificationProvider = ({ children }) => {
       console.log("🔔 Cleaning up notification polling...")
       clearInterval(interval)
     }
-  }, [currentUser, authLoading, fetchUnseenCount, getUserId])
+  }, [currentUser?.id, authLoading, fetchUnseenCount])
 
   const markNotificationAsSeen = async (notificationId) => {
-    const userId = getUserId()
-    if (!currentUser || !userId) return false
+    if (!currentUser?.id) return false
 
     try {
       console.log("🔔 Marking notification as seen:", notificationId)
       
       if (isAdmin) {
-        await notificationService.markAdminNotificationsAsSeen(userId, [notificationId])
+        await notificationService.markAdminNotificationsAsSeen(currentUser.id, [notificationId])
       } else {
-        await notificationService.markUserNotificationsAsSeen(userId, [notificationId])
+        await notificationService.markUserNotificationsAsSeen(currentUser.id, [notificationId])
       }
       
       // Update local state
@@ -186,16 +171,15 @@ export const NotificationProvider = ({ children }) => {
   }
 
   const markAllNotificationsAsSeen = async () => {
-    const userId = getUserId()
-    if (!currentUser || !userId) return false
+    if (!currentUser?.id) return false
 
     try {
       console.log("🔔 Marking all notifications as seen")
       
       if (isAdmin) {
-        await notificationService.markAllAdminNotificationsAsSeen(userId)
+        await notificationService.markAllAdminNotificationsAsSeen(currentUser.id)
       } else {
-        await notificationService.markAllUserNotificationsAsSeen(userId)
+        await notificationService.markAllUserNotificationsAsSeen(currentUser.id)
       }
       
       // Update local state

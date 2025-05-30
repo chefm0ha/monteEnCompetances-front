@@ -7,7 +7,7 @@ export const STORAGE_URL = "https://storage.googleapis.com/your-bucket-name"
 // Application settings
 export const APP_SETTINGS = {
   appName: "Plateforme de Formation",
-  logoUrl: "/logo.png",
+  logoUrl: "/logo2.png",
   defaultAvatarUrl: "/default-avatar.png",
   supportEmail: "support@example.com",
 }
