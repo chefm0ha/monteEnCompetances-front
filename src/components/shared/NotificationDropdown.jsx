@@ -78,8 +78,7 @@ const NotificationDropdown = () => {
     if (diffInMinutes < 60) return `Il y a ${diffInMinutes} min`
     if (diffInHours < 24) return `Il y a ${diffInHours}h`
     if (diffInDays < 7) return `Il y a ${diffInDays}j`
-    
-    return date.toLocaleDateString('fr-FR', {
+      return date.toLocaleDateString('fr-FR', {
       day: 'numeric',
       month: 'short'
     })
@@ -88,17 +87,14 @@ const NotificationDropdown = () => {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="relative">
+        <button className="relative inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3">
           <Bell className="h-5 w-5" />
           {unseenCount > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-            >
+            <div className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold min-w-[16px] border-2 border-white">
               {unseenCount > 99 ? '99+' : unseenCount}
-            </Badge>
+            </div>
           )}
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
@@ -151,20 +147,18 @@ const NotificationDropdown = () => {
                     "flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0",
                     !notification.seen && "bg-blue-50"
                   )}
-                >
-                  <div className="flex-shrink-0 mt-0.5">
-                    {getNotificationIcon(notification.type)}
-                  </div>
-                  <div className="flex-1 min-w-0">
+                >                  <div className="flex-shrink-0 mt-0.5">
+                    {getNotificationIcon(notification.type || 'INFO')}
+                  </div><div className="flex-1 min-w-0">
                     <p className={cn(
                       "text-sm leading-5",
                       !notification.seen ? "font-medium text-gray-900" : "text-gray-700"
                     )}>
-                      {notification.title}
+                      {notification.titre}
                     </p>
-                    {notification.message && (
+                    {notification.contenu && (
                       <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {notification.message}
+                        {notification.contenu}
                       </p>
                     )}
                     <p className="text-xs text-gray-400 mt-2">

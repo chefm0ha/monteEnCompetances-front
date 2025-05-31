@@ -151,11 +151,10 @@ const NotificationsPage = () => {
       minute: '2-digit'
     })
   }
-
   const filteredNotifications = notifications.filter(notification => {
     const matchesSearch = !searchTerm || 
-      notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      notification.message?.toLowerCase().includes(searchTerm.toLowerCase())
+      notification.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      notification.contenu?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesTab = activeTab === "all" || 
       (activeTab === "unread" && !notification.seen) ||
@@ -306,23 +305,21 @@ const NotificationsPage = () => {
                         onChange={() => handleSelectNotification(notification.id)}
                         className="mt-1"
                       />
-                      
-                      <div className="flex-shrink-0 mt-0.5">
-                        {getNotificationIcon(notification.type)}
+                        <div className="flex-shrink-0 mt-0.5">
+                        {getNotificationIcon(notification.type || 'INFO')}
                       </div>
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className={cn(
+                          <div className="flex-1">                            <h4 className={cn(
                               "text-sm font-medium",
                               !notification.seen ? "text-gray-900" : "text-gray-700"
                             )}>
-                              {notification.title}
+                              {notification.titre}
                             </h4>
-                            {notification.message && (
+                            {notification.contenu && (
                               <p className="text-sm text-gray-600 mt-1">
-                                {notification.message}
+                                {notification.contenu}
                               </p>
                             )}
                             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">

@@ -131,12 +131,11 @@ export const NotificationProvider = ({ children }) => {
     
     // Initial fetch
     fetchUnseenCount()
-    
-    // Set up interval
+      // Set up interval
     const interval = setInterval(() => {
       console.log("🔔 Polling for new notifications...")
       fetchUnseenCount()
-    }, 15000) // 15 seconds
+    }, 30000) // 30 seconds
 
     return () => {
       console.log("🔔 Cleaning up notification polling...")

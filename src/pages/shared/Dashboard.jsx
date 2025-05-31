@@ -33,55 +33,53 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchFormations = async () => {
       try {
+        setLoading(true)
+        
+        // Check if user has the required ID
+        if (!currentUser?.id) {
+          console.error("❌ Current user ID missing:", currentUser);
+          setError("Impossible de charger les données utilisateur. Veuillez vous reconnecter.");
+          return;
+        }
+
+        console.log("🔍 Fetching formations for user:", currentUser.id);
         const data = await formationService.getAssignedFormations()
+        console.log("✅ Formations loaded:", data);
         setFormations(data)
+        setError(null)
       } catch (error) {
-        console.warn("Couldn't fetch formations from API, using mock data", error)
-        // Mock data for development
-        setFormations([
-          {
-            id: "formation1",
-            title: "Introduction à la cybersécurité",
-            description: "Les bases de la sécurité informatique pour les nouveaux collaborateurs",
-            progress: 75,
-            completedModules: 3,
-            totalModules: 4,
-            duration: 8,
-            type: "Sécurité",
-            lienPhoto: "/course_placeholder.png"
-          },
-          {
-            id: "formation2", 
-            title: "RGPD et protection des données",
-            description: "Comprendre les enjeux de la protection des données personnelles",
-            progress: 100,
-            completedModules: 5,
-            totalModules: 5,
-            duration: 4,
-            type: "Conformité",
-            lienPhoto: "/course_placeholder.png"
-          },
-          {
-            id: "formation3",
-            title: "Outils collaboratifs",
-            description: "Maîtriser les outils de collaboration en ligne",
-            progress: 0,
-            completedModules: 0,
-            totalModules: 3,
-            duration: 6,
-            type: "Technique",
-            lienPhoto: "/course_placeholder.png"
-          },
-        ])
+        console.error("❌ Error fetching formations:", error)
+        
+        // Provide more specific error handling
+        if (error.response?.status === 401) {
+          setError("Session expirée. Veuillez vous reconnecter.")
+          // Optionally redirect to login
+        } else if (error.response?.status === 404) {
+          // User might not have any formations assigned
+          setFormations([])
+          setError(null)
+        } else {
+          setError("Impossible de récupérer vos formations. Veuillez réessayer plus tard.")
+        }
       } finally {
         setLoading(false)
       }
     }
 
-    fetchFormations()
-  }, [])
+    // Only fetch if user is available and has required data
+    if (currentUser?.id) {
+      fetchFormations()
+    } else if (!loading) {
+      setError("Données utilisateur manquantes. Veuillez vous reconnecter.")
+      setLoading(false)
+    }
+  }, [currentUser])
 
   const getStats = () => {
+    if (!formations.length) {
+      return { completed: 0, inProgress: 0, notStarted: 0, total: 0, totalHours: 0, completedHours: 0 }
+    }
+
     const completed = formations.filter((f) => f.progress === 100).length
     const inProgress = formations.filter((f) => f.progress > 0 && f.progress < 100).length
     const notStarted = formations.filter((f) => f.progress === 0).length
@@ -111,20 +109,30 @@ const Dashboard = () => {
     navigate(`/formation/${formationId}`)
   }
 
+  // Loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Chargement de vos formations...</span>
       </div>
     )
   }
 
+  // Error state
   if (error) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <div className="flex justify-center">
+          <Button onClick={() => window.location.reload()}>
+            Réessayer
+          </Button>
+        </div>
+      </div>
     )
   }
 
@@ -138,7 +146,10 @@ const Dashboard = () => {
               Bonjour, {currentUser?.firstName} ! 👋
             </h1>
             <p className="text-blue-100">
-              Continuez votre parcours de formation et développez vos compétences
+              {formations.length > 0 
+                ? "Continuez votre parcours de formation et développez vos compétences"
+                : "Bienvenue sur votre plateforme de formation"
+              }
             </p>
           </div>
           <div className="hidden md:block">
@@ -206,116 +217,141 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Continue Learning Section */}
+      {/* No formations state */}
+      {formations.length === 0 ? (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Play className="h-5 w-5" />
-              Continuer l'apprentissage
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {getRecentFormations().length === 0 ? (
-              <div className="text-center py-6">
-                <Target className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                <p className="text-gray-500">Toutes vos formations sont terminées !</p>
-                <Button 
-                  className="mt-3" 
-                  onClick={() => navigate('/mes-formations')}
-                >
-                  Voir toutes mes formations
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {getRecentFormations().map((formation) => (
-                  <div 
-                    key={formation.id}
-                    className="flex items-center gap-4 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => handleFormationClick(formation.id)}
-                  >
-                    <img
-                      src={formation.lienPhoto || "/course_placeholder.png"}
-                      alt={formation.title}
-                      className="w-12 h-12 rounded object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium line-clamp-1">{formation.title}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Progress value={formation.progress || 0} className="h-2 flex-1" />
-                        <span className="text-xs text-gray-500">{formation.progress || 0}%</span>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-gray-400" />
-                  </div>
-                ))}
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate('/mes-formations')}
-                >
-                  Voir toutes mes formations
-                </Button>
-              </div>
-            )}
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <BookOpen className="h-16 w-16 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Aucune formation assignée
+            </h3>
+            <p className="text-gray-500 text-center mb-4">
+              Vous n'avez pas encore de formations assignées. 
+              Contactez votre administrateur pour obtenir l'accès aux formations.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/mes-formations')}
+            >
+              Voir mes formations
+            </Button>
           </CardContent>
         </Card>
-
-        {/* Achievements Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
-              Mes accomplissements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {getCompletedFormations().length === 0 ? (
-              <div className="text-center py-6">
-                <Award className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                <p className="text-gray-500">Aucune formation terminée pour le moment</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  Complétez vos formations pour obtenir vos premiers certificats !
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {getCompletedFormations().map((formation) => (
-                  <div 
-                    key={formation.id}
-                    className="flex items-center gap-4 p-3 rounded-lg border bg-green-50 border-green-200"
+      ) : (
+        /* Main Content Grid */
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Continue Learning Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Play className="h-5 w-5" />
+                Continuer l'apprentissage
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {getRecentFormations().length === 0 ? (
+                <div className="text-center py-6">
+                  <Target className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                  <p className="text-gray-500">Toutes vos formations sont terminées !</p>
+                  <Button 
+                    className="mt-3" 
+                    onClick={() => navigate('/mes-formations')}
                   >
-                    <div className="bg-green-100 p-2 rounded-full">
-                      <CheckCircle className="h-6 w-6 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-green-900">{formation.title}</h4>
-                      <p className="text-sm text-green-700">Formation terminée • {formation.duration}h</p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-green-300 text-green-700 hover:bg-green-100"
-                      onClick={() => navigate(`/formation/${formation.id}/certificate`)}
+                    Voir toutes mes formations
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {getRecentFormations().map((formation) => (
+                    <div 
+                      key={formation.id}
+                      className="flex items-center gap-4 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => handleFormationClick(formation.id)}
                     >
-                      Certificat
-                    </Button>
-                  </div>
-                ))}
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate('/mes-certificats')}
-                >
-                  Voir tous mes certificats
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                      <img
+                        src={formation.lienPhoto || "/course_placeholder.png"}
+                        alt={formation.title}
+                        className="w-12 h-12 rounded object-cover"
+                        onError={(e) => {
+                          e.target.src = "/course_placeholder.png"
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium line-clamp-1">{formation.title}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Progress value={formation.progress || 0} className="h-2 flex-1" />
+                          <span className="text-xs text-gray-500">{formation.progress || 0}%</span>
+                        </div>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate('/mes-formations')}
+                  >
+                    Voir toutes mes formations
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Achievements Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                Mes accomplissements
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {getCompletedFormations().length === 0 ? (
+                <div className="text-center py-6">
+                  <Award className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                  <p className="text-gray-500">Aucune formation terminée pour le moment</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Complétez vos formations pour obtenir vos premiers certificats !
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {getCompletedFormations().map((formation) => (
+                    <div 
+                      key={formation.id}
+                      className="flex items-center gap-4 p-3 rounded-lg border bg-green-50 border-green-200"
+                    >
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <CheckCircle className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-green-900">{formation.title}</h4>
+                        <p className="text-sm text-green-700">Formation terminée • {formation.duration}h</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-green-300 text-green-700 hover:bg-green-100"
+                        onClick={() => navigate(`/formation/${formation.id}/certificate`)}
+                      >
+                        Certificat
+                      </Button>
+                    </div>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => navigate('/mes-certificats')}
+                  >
+                    Voir tous mes certificats
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <Card>
@@ -372,11 +408,14 @@ const Dashboard = () => {
                   navigate('/mes-formations')
                 }
               }}
+              disabled={formations.length === 0}
             >
               <Play className="h-5 w-5 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Continuer</div>
-                <div className="text-xs text-gray-500">Reprendre ma formation</div>
+                <div className="text-xs text-gray-500">
+                  {formations.length === 0 ? "Aucune formation" : "Reprendre ma formation"}
+                </div>
               </div>
             </Button>
           </div>

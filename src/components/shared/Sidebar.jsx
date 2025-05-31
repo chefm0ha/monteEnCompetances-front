@@ -138,9 +138,12 @@ const Sidebar = () => {
       <div className={cn(
         "mx-auto mt-2 px-2 py-1 rounded text-xs font-medium",
         isAdmin ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800",
-        collapsed ? "w-12 text-center" : "w-auto"
+        collapsed ? "w-8 h-8 flex items-center justify-center" : "w-auto"
       )}>
-        {isAdmin ? "Admin" : "Collaborateur"}
+        {collapsed 
+          ? (isAdmin ? "A" : "C")
+          : (isAdmin ? "Admin" : "Collaborateur")
+        }
       </div>
 
       {/* Navigation */}
@@ -175,18 +178,20 @@ const Sidebar = () => {
                 collapsed ? "justify-center px-0" : "justify-start"
               )}
             >
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={currentUser?.avatar || APP_SETTINGS.defaultAvatarUrl} />
-                <AvatarFallback>{currentUser?.firstName?.charAt(0) || "U"}</AvatarFallback>
-              </Avatar>
-              {!collapsed && (
-                <div className="ml-2 flex flex-col items-start">
-                  <span className="text-xs font-medium truncate max-w-[120px]">
-                    {currentUser?.firstName} {currentUser?.lastName}
-                  </span>
-                  <span className="text-xs text-gray-500 truncate max-w-[120px]">{currentUser?.email}</span>
-                </div>
-              )}
+              <div className="flex items-center">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={currentUser?.avatar || APP_SETTINGS.defaultAvatarUrl} />
+                  <AvatarFallback>{currentUser?.firstName?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+                {!collapsed && (
+                  <div className="ml-2 flex flex-col items-start">
+                    <span className="text-xs font-medium truncate max-w-[120px]">
+                      {currentUser?.firstName} {currentUser?.lastName}
+                    </span>
+                    <span className="text-xs text-gray-500 truncate max-w-[120px]">{currentUser?.email}</span>
+                  </div>
+                )}
+              </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 

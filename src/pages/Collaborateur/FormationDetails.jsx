@@ -1,3 +1,4 @@
+// src/pages/Collaborateur/FormationDetails.jsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -7,7 +8,7 @@ import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "../../components/ui/breadcrumb"
-import { Loader2, AlertCircle, Download, ArrowLeft, Clock } from "lucide-react"
+import { Loader2, AlertCircle, Download, ArrowLeft, Clock, RefreshCw } from "lucide-react"
 import ProgressBar from "../../components/shared/ProgressBar"
 import ModuleAccordion from "../../components/Collaborateur/ModuleAccordion"
 import Swal from 'sweetalert2'
@@ -21,62 +22,147 @@ const FormationDetails = () => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const fetchFormationDetails = async () => {
-      try {
-        const formationData = await formationService.getFormationById(formationId)
-        setFormation(formationData)
-
-        const progressData = await formationService.getFormationProgress(formationId)
-        setUserProgress(progressData)
-      } catch (error) {
-        console.error("Error fetching formation details:", error)
-        setError("Impossible de récupérer les détails de la formation. Veuillez réessayer plus tard.")
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchFormationDetails()
   }, [formationId])
 
+  const fetchFormationDetails = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      console.log("🔍 Fetching formation details for ID:", formationId);
+
+      // Get formation details using the collaborator endpoint
+      const formationData = await formationService.getCollaboratorFormationById(formationId)
+      console.log("✅ Formation data loaded:", formationData);
+      setFormation(formationData)
+
+      // Get user progress
+      const progressData = await formationService.getFormationProgress(formationId)
+      console.log("✅ Progress data loaded:", progressData);
+      setUserProgress(progressData)
+
+    } catch (error) {
+      console.error("❌ Error fetching formation details:", error)
+      
+      if (error.response?.status === 401) {
+        setError("Session expirée. Veuillez vous reconnecter.")
+      } else if (error.response?.status === 404) {
+        setError("Formation introuvable. Elle a peut-être été supprimée ou vous n'y avez pas accès.")
+      } else if (error.response?.status === 403) {
+        setError("Vous n'avez pas accès à cette formation.")
+      } else {
+        setError("Impossible de récupérer les détails de la formation. Veuillez réessayer plus tard.")
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleDownloadCertificate = async () => {
     try {
+      console.log("🏆 Generating certificate for formation:", formationId);
+      
+      const certificateBlob = await formationService.generateCertificate(formationId)
+      
+      // Create download link
+      const url = window.URL.createObjectURL(certificateBlob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `certificat_${formation.title.replace(/\s+/g, "_")}.html`
+      document.body.appendChild(a)
+      a.click()
+      
+      // Clean up
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
+      
+      Swal.fire({
+        title: 'Téléchargement terminé !',
+        text: 'Votre certificat a été téléchargé avec succès.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+      })
     } catch (error) {
-      console.error("Error downloading certificate:", error)
+      console.error("❌ Error downloading certificate:", error)
       Swal.fire({
         title: 'Erreur',
-        text: 'Impossible de télécharger le certificat. Veuillez réessayer plus tard.',
+        text: 'Impossible de télécharger le certificat. Assurez-vous d\'avoir terminé la formation.',
         icon: 'error',
         confirmButtonText: 'OK'
       })
     }
   }
 
+  const handleRefresh = () => {
+    fetchFormationDetails()
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Chargement des détails de la formation...</span>
       </div>
     )
   }
 
   if (error) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <div className="space-y-6">
+        <Breadcrumb>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbLink>Formation</BreadcrumbLink>
+          </BreadcrumbItem>
+        </Breadcrumb>
+
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+
+        <div className="flex justify-center gap-4">
+          <Button onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Réessayer
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/mes-formations")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour aux formations
+          </Button>
+        </div>
+      </div>
     )
   }
 
   if (!formation) {
     return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>Formation introuvable.</AlertDescription>
-      </Alert>
+      <div className="space-y-6">
+        <Breadcrumb>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbLink>Formation</BreadcrumbLink>
+          </BreadcrumbItem>
+        </Breadcrumb>
+
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>Formation introuvable.</AlertDescription>
+        </Alert>
+
+        <div className="flex justify-center">
+          <Button onClick={() => navigate("/mes-formations")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour aux formations
+          </Button>
+        </div>
+      </div>
     )
   }
 
@@ -89,15 +175,22 @@ const FormationDetails = () => {
           <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbItem>
+          <BreadcrumbLink onClick={() => navigate("/mes-formations")}>Mes formations</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbItem>
           <BreadcrumbLink>{formation.title}</BreadcrumbLink>
         </BreadcrumbItem>
       </Breadcrumb>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate("/mes-formations")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Actualiser
           </Button>
         </div>
 
@@ -111,23 +204,121 @@ const FormationDetails = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{formation.title}</CardTitle>
-          <CardDescription>{formation.description}</CardDescription>
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <CardTitle className="text-2xl mb-2">{formation.title}</CardTitle>
+              <CardDescription className="text-base">{formation.description}</CardDescription>
+            </div>
+            {formation.lienPhoto && (
+              <img
+                src={formation.lienPhoto}
+                alt={formation.title}
+                className="w-24 h-24 rounded-lg object-cover ml-4"
+                onError={(e) => {
+                  e.target.style.display = 'none'
+                }}
+              />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center text-sm text-gray-500 mb-4">
-            <Clock className="h-4 w-4 mr-1" />
-            <span>{formation.duration} heures</span>
+          <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center">
+                <Clock className="h-4 w-4 mr-1" />
+                <span>{formation.duration} heures</span>
+              </div>
+              <span className="px-2 py-1 bg-gray-100 rounded text-xs">{formation.type}</span>
+            </div>
+            {isFormationCompleted && (
+              <span className="text-green-600 font-medium">✅ Formation terminée</span>
+            )}
           </div>
 
-          <ProgressBar
-            value={userProgress?.completedModules?.length || 0}
-            total={formation.modules?.length || 0}
-            className="mb-6"
-          />
+          <div className="mb-6">
+            <ProgressBar
+              value={userProgress?.completedModules?.length || 0}
+              total={formation.modules?.length || 0}
+              className="mb-2"
+              showPercentage={true}
+            />
+            <div className="text-sm text-gray-600">
+              {userProgress?.completedModules?.length || 0} sur {formation.modules?.length || 0} modules complétés
+              {userProgress?.progress > 0 && (
+                <span className="ml-2">• {userProgress.progress}% de progression</span>
+              )}
+            </div>
+          </div>
 
-          <h3 className="text-lg font-semibold mb-4">Modules</h3>
-          <ModuleAccordion formationId={formationId} modules={formation.modules} userProgress={userProgress} />
+          {formation.modules && formation.modules.length > 0 ? (
+            <>
+              <h3 className="text-lg font-semibold mb-4">Modules</h3>
+              <ModuleAccordion 
+                formationId={formationId} 
+                modules={formation.modules} 
+                userProgress={userProgress} 
+              />
+            </>
+          ) : (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Cette formation ne contient pas encore de modules. 
+                Contactez votre administrateur pour plus d'informations.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Formation completion message */}
+      {isFormationCompleted && (
+        <Card className="bg-green-50 border-green-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-green-100 p-3 rounded-full">
+                <Download className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-green-900 mb-1">
+                  Félicitations ! Vous avez terminé cette formation
+                </h3>
+                <p className="text-green-700 text-sm">
+                  Votre certificat de réussite est maintenant disponible au téléchargement.
+                </p>
+              </div>
+              <Button 
+                onClick={handleDownloadCertificate}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Télécharger le certificat
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Help and tips */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-4">
+            <div className="bg-blue-100 p-2 rounded-full">
+              <AlertCircle className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-medium text-blue-900 mb-2">Comment progresser dans cette formation</h3>
+              <ul className="text-blue-700 text-sm space-y-1">
+                <li>• Consultez les modules dans l'ordre recommandé</li>
+                <li>• Terminez tous les contenus d'un module avant de passer au quiz</li>
+                <li>• Les quizzes sont débloqués après avoir consulté tous les contenus</li>
+                <li>• Votre progression est sauvegardée automatiquement</li>
+                {!isFormationCompleted && (
+                  <li>• Terminez tous les modules pour obtenir votre certificat</li>
+                )}
+              </ul>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -135,4 +326,3 @@ const FormationDetails = () => {
 }
 
 export default FormationDetails
-
