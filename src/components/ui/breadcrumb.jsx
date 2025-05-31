@@ -1,6 +1,5 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
-import { ChevronRight } from "lucide-react"
 
 import { cn } from "../../lib/utils"
 
@@ -25,14 +24,14 @@ const BreadcrumbLink = React.forwardRef(({ asChild, className, ...props }, ref) 
   const Comp = asChild ? Slot : "a"
 
   return (
-    <Comp ref={ref} className={cn("transition-colors hover:text-foreground cursor-pointer", className)} {...props} />
+    <Comp ref={ref} className={cn("transition-colors hover:text-foreground hover:underline cursor-pointer", className)} {...props} />
   )
 })
 BreadcrumbLink.displayName = "BreadcrumbLink"
 
 const BreadcrumbSeparator = ({ children, className, ...props }) => (
-  <li role="presentation" aria-hidden="true" className={cn("[&>svg]:size-3.5", className)} {...props}>
-    {children || <ChevronRight className="h-4 w-4" />}
+  <li role="presentation" aria-hidden="true" className={cn("", className)} {...props}>
+    {children || "/"}
   </li>
 )
 BreadcrumbSeparator.displayName = "BreadcrumbSeparator"

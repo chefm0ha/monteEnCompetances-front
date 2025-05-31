@@ -121,8 +121,8 @@ const Sidebar = () => {
           />
         </div>
         <div className="flex items-center gap-1">
-          {/* Notifications - only show for admins */}
-          {isAdmin && <NotificationDropdown />}
+          {/* Notifications - available for all users */}
+          <NotificationDropdown />
           <Button 
             variant="ghost" 
             size="sm" 

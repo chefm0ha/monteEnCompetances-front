@@ -7,7 +7,7 @@ import { formationService } from "../../services/formationService"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Alert, AlertDescription } from "../../components/ui/alert"
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "../../components/ui/breadcrumb"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../components/ui/breadcrumb"
 import { Loader2, AlertCircle, ArrowLeft, CheckCircle, XCircle, RefreshCw } from "lucide-react"
 import Swal from 'sweetalert2'
 import QuizQuestion from "../../components/Collaborateur/QuizQuestion"
@@ -194,17 +194,21 @@ const Quiz = () => {
     return (
       <div className="space-y-6">
         <Breadcrumb>
-          <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>
-              {formation?.title || "Formation"}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbLink>Quiz</BreadcrumbLink>
-          </BreadcrumbItem>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>
+                {formation?.title || "Formation"}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink>Quiz</BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
         </Breadcrumb>
 
         <Alert variant="destructive">
@@ -230,15 +234,19 @@ const Quiz = () => {
     return (
       <div className="space-y-6">
         <Breadcrumb>
-          <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>Formation</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbLink>Quiz</BreadcrumbLink>
-          </BreadcrumbItem>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>Formation</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink>Quiz</BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
         </Breadcrumb>
 
         <Alert>
@@ -259,20 +267,25 @@ const Quiz = () => {
   return (
     <div className="space-y-6">
       <Breadcrumb>
-        <BreadcrumbItem>
-          <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>{formation.title}</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}/module/${moduleId}`)}>
-            {module.title}
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink>Quiz</BreadcrumbLink>
-        </BreadcrumbItem>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>{formation.title}</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}/module/${moduleId}`)}>
+              {module.title}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink>Quiz</BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

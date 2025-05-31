@@ -8,7 +8,7 @@ import { useAuth } from "../../context/AuthContext"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent } from "../../components/ui/card"
 import { Alert, AlertDescription } from "../../components/ui/alert"
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "../../components/ui/breadcrumb"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../components/ui/breadcrumb"
 import { Loader2, AlertCircle, ArrowLeft, Download, Printer, RefreshCw, CheckCircle } from "lucide-react"
 import { APP_SETTINGS } from "../../config"
 import Swal from 'sweetalert2'
@@ -162,17 +162,21 @@ const Certificate = () => {
     return (
       <div className="space-y-6">
         <Breadcrumb>
-          <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>
-              {formation?.title || "Formation"}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbLink>Certificat</BreadcrumbLink>
-          </BreadcrumbItem>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>
+                {formation?.title || "Formation"}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink>Certificat</BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
         </Breadcrumb>
 
         <Alert variant="destructive">
@@ -198,12 +202,15 @@ const Certificate = () => {
     return (
       <div className="space-y-6">
         <Breadcrumb>
-          <BreadcrumbItem>
-            <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbItem>
-            <BreadcrumbLink>Certificat</BreadcrumbLink>
-          </BreadcrumbItem>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink>Certificat</BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
         </Breadcrumb>
 
         <Alert>
@@ -233,18 +240,23 @@ const Certificate = () => {
   return (
     <div className="space-y-6">
       <Breadcrumb>
-        <BreadcrumbItem>
-          <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink onClick={() => navigate("/mes-formations")}>Mes formations</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>{formation.title}</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <BreadcrumbLink>Certificat</BreadcrumbLink>
-        </BreadcrumbItem>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate("/dashboard")}>Tableau de bord</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate("/mes-formations")}>Mes formations</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink onClick={() => navigate(`/formation/${formationId}`)}>{formation.title}</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink>Certificat</BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
