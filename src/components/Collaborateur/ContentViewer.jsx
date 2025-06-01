@@ -36,12 +36,43 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead }) => {
     }
   }
 
+  const handleDownloadSupport = async () => {
+    try {
+      setLoading(true)
+      const downloadUrl = await formationService.getSupportDownloadUrl(content.id)
+      window.open(downloadUrl, '_blank')
+    } catch (error) {
+      console.error("Error downloading support:", error)
+      setError("Impossible de télécharger le fichier. Veuillez réessayer.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const renderContent = () => {
     switch (content.type.toLowerCase()) {
       case "pdf":
         return (
-          <div className="w-full h-[70vh]">
-            <iframe src={`${STORAGE_URL}/${content.url}`} className="w-full h-full border-0" title={content.title} />
+          <div className="space-y-4">
+            {content.downloadUrl && (
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => handleDownloadSupport()}
+                  variant="outline"
+                >
+                  Télécharger le PDF
+                </Button>
+              </div>
+            )}
+            {content.url && (
+              <div className="w-full h-[70vh]">
+                <iframe 
+                  src={content.url} 
+                  className="w-full h-full border-0" 
+                  title={content.title} 
+                />
+              </div>
+            )}
           </div>
         )
 

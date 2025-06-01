@@ -27,7 +27,7 @@ const ModuleContent = () => {
     const fetchData = async () => {
       try {
         // Get formation details
-        const formationData = await formationService.getFormationById(formationId)
+        const formationData = await formationService.getCollaboratorFormationById(formationId)
         setFormation(formationData)
 
         // Get module details
@@ -77,11 +77,20 @@ const ModuleContent = () => {
   }
 
   const isAllContentRead = () => {
-    if (!module?.contents) return false
+    if (!module?.contents || module.contents.length === 0) return false
     return module.contents.every((content) => content.isRead || userProgress?.completedContents?.includes(content.id))
   }
 
   const handleStartQuiz = () => {
+    if (!isAllContentRead()) {
+      Swal.fire({
+        title: 'Contenus non terminés',
+        text: 'Vous devez consulter tous les contenus du module avant de pouvoir accéder au quiz.',
+        icon: 'warning',
+        confirmButtonText: 'D\'accord'
+      })
+      return
+    }
     navigate(`/formation/${formationId}/module/${moduleId}/quiz`)
   }
 
@@ -163,14 +172,20 @@ const ModuleContent = () => {
 
           <Tabs value={activeTab} onValueChange={handleContentChange}>
             <TabsList className="mb-4">
-              {module.contents.map((content, index) => (
-                <TabsTrigger key={content.id} value={index.toString()}>
-                  {content.title}
-                </TabsTrigger>
-              ))}
+              {module.contents && module.contents.length > 0 ? (
+                module.contents.map((content, index) => (
+                  <TabsTrigger key={content.id} value={index.toString()}>
+                    {content.title}
+                  </TabsTrigger>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Ce module ne contient pas encore de contenu.
+                </div>
+              )}
             </TabsList>
 
-            {module.contents.map((content, index) => (
+            {module.contents && module.contents.length > 0 && module.contents.map((content, index) => (
               <TabsContent key={content.id} value={index.toString()}>
                 <ContentViewer
                   formationId={formationId}
@@ -194,7 +209,7 @@ const ModuleContent = () => {
             <Button
               variant="outline"
               onClick={handleNextContent}
-              disabled={Number.parseInt(activeTab) === module.contents.length - 1}
+              disabled={!module.contents || Number.parseInt(activeTab) === (module.contents.length - 1)}
             >
               Suivant
               <ArrowRight className="h-4 w-4 ml-2" />

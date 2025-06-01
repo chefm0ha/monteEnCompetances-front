@@ -32,8 +32,8 @@ const FormationDetails = () => {
 
       console.log("🔍 Fetching formation details for ID:", formationId);
 
-      // Get formation details using the collaborator endpoint
-      const formationData = await formationService.getCollaboratorFormationById(formationId)
+      // Get formation details with modules, supports and quizzes using the new method
+      const formationData = await formationService.getFormationWithDetails(formationId)
       console.log("✅ Formation data loaded:", formationData);
       setFormation(formationData)
 

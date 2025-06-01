@@ -41,12 +41,12 @@ const Quiz = () => {
       console.log("✅ Formation data loaded:", formationData);
       setFormation(formationData)
 
-      // Get module details
+      // Get module details with all its information
       const moduleData = await formationService.getModuleById(formationId, moduleId)
       console.log("✅ Module data loaded:", moduleData);
       setModule(moduleData)
 
-      // Get quiz
+      // Get quiz using the new endpoint structure
       const quizData = await formationService.getQuiz(formationId, moduleId)
       console.log("✅ Quiz data loaded:", quizData);
       setQuiz(quizData)
@@ -127,14 +127,14 @@ const Quiz = () => {
         Swal.fire({
           icon: 'success',
           title: 'Quiz réussi ! 🎉',
-          text: `Félicitations ! Vous avez obtenu ${results.score}/${results.totalQuestions} points.`,
+          text: `${results.message} Score: ${results.formattedScore} (${results.score}/${results.totalQuestions} questions correctes)`,
           confirmButtonText: 'Continuer'
         })
       } else {
         Swal.fire({
           icon: 'error',
           title: 'Quiz échoué',
-          text: `Vous avez obtenu ${results.score}/${results.totalQuestions} points. Score minimum requis: ${results.requiredScore}.`,
+          text: `${results.message} Score: ${results.formattedScore} (${results.score}/${results.totalQuestions} questions correctes)`,
           confirmButtonText: 'Réessayer'
         })
       }
@@ -319,7 +319,7 @@ const Quiz = () => {
                 <AlertDescription>
                   {quizResults.passed
                     ? `Félicitations ! Vous avez réussi le quiz avec un score de ${quizResults.score}/${quizResults.totalQuestions}.`
-                    : `Vous avez obtenu ${quizResults.score}/${quizResults.totalQuestions}. Score minimum requis: ${quizResults.requiredScore}.`}
+                    : `Vous avez obtenu ${quizResults.score}/${quizResults.totalQuestions}. Score minimum requis: ${quiz?.seuilReussite || 70}%.`}
                 </AlertDescription>
               </Alert>
             </div>

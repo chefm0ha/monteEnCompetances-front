@@ -229,24 +229,95 @@ export const formationService = {
         description: formation.description,
         type: formation.type,
         duration: formation.duree || 0,
-        lienPhoto: formation.lienPhoto,
-        modules: formation.modules?.map(module => ({
-          id: module.id,
-          title: module.titre,
-          description: module.description,
-          ordre: module.ordre,
-          contents: module.supports?.map(support => ({
-            id: support.id,
-            title: support.titre,
-            description: support.description,
-            type: support.type,
-            url: support.lien,
-            duration: support.duree
-          })) || []
-        })) || []
+        lienPhoto: formation.lienPhoto
       };
     } catch (error) {
       console.error(`Erreur lors de la récupération de la formation ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupère les modules d'une formation (collaborateur)
+   */
+  getFormationModules: async (formationId) => {
+    try {
+      const response = await API.get(`/api/collaborateur/formations/${formationId}/modules`);
+      
+      // Transform response to match frontend expectations
+      return response.data.map(module => ({
+        id: module.id,
+        title: module.titre,
+        description: module.description,
+        ordre: module.ordre
+      }));
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des modules de la formation ${formationId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupère les détails complets d'une formation avec modules, supports et quizzes (collaborateur)
+   */
+  getFormationWithDetails: async (formationId) => {
+    try {
+      // Get basic formation info
+      const formation = await formationService.getCollaboratorFormationById(formationId);
+      
+      // Get modules for this formation
+      const modules = await formationService.getFormationModules(formationId);
+      
+      // Get supports and quizzes for each module
+      const modulesWithDetails = await Promise.all(
+        modules.map(async (module) => {
+          try {
+            // Get module details with supports
+            const moduleDetails = await formationService.getModuleById(formationId, module.id);
+            
+            // Get module quizzes
+            let quiz = null;
+            try {
+              const quizzes = await API.get(`/api/collaborateur/formations/modules/${module.id}/quizzes`);
+              if (quizzes.data && quizzes.data.length > 0) {
+                // Get full quiz details with questions
+                const quizResponse = await API.get(`/api/collaborateur/formations/quizzes/${quizzes.data[0].id}`);
+                quiz = {
+                  id: quizResponse.data.id,
+                  title: quizResponse.data.titre,
+                  seuilReussite: quizResponse.data.seuilReussite,
+                  questions: quizResponse.data.questions?.map(question => ({
+                    id: question.id,
+                    text: question.contenu,
+                    choices: question.choix?.map(choice => ({
+                      id: choice.id,
+                      text: choice.contenu,
+                      isCorrect: choice.estCorrect
+                    })) || []
+                  })) || []
+                };
+              }
+            } catch (quizError) {
+              console.warn(`No quiz found for module ${module.id}:`, quizError);
+            }
+            
+            return {
+              ...moduleDetails,
+              quiz
+            };
+          } catch (moduleError) {
+            console.error(`Error fetching details for module ${module.id}:`, moduleError);
+            return module; // Return basic module info if details fail
+          }
+        })
+      );
+      
+      return {
+        ...formation,
+        modules: modulesWithDetails
+      };
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des détails complets de la formation ${formationId}:`, error);
       throw error;
     }
   },
@@ -284,21 +355,31 @@ export const formationService = {
   getModuleById: async (formationId, moduleId) => {
     try {
       const response = await API.get(`/api/collaborateur/formations/modules/${moduleId}`);
-      
       const module = response.data;
-      return {
-        id: module.id,
-        title: module.titre,
-        description: module.description,
-        ordre: module.ordre,
-        contents: module.supports?.map(support => ({
+      
+      // Get supports for this module
+      let supports = [];
+      try {
+        const supportsResponse = await API.get(`/api/collaborateur/formations/modules/${moduleId}/supports`);
+        supports = supportsResponse.data.map(support => ({
           id: support.id,
           title: support.titre,
           description: support.description,
           type: support.type,
           url: support.lien,
-          duration: support.duree
-        })) || []
+          duration: support.duree,
+          downloadUrl: support.type === 'PDF' ? `/api/collaborateur/formations/supports/${support.id}/download` : null
+        }));
+      } catch (supportsError) {
+        console.warn(`No supports found for module ${moduleId}:`, supportsError);
+      }
+      
+      return {
+        id: module.id,
+        title: module.titre,
+        description: module.description,
+        ordre: module.ordre,
+        contents: supports
       };
     } catch (error) {
       console.error(`Erreur lors de la récupération du module ${moduleId}:`, error);
@@ -376,14 +457,82 @@ export const formationService = {
         transformedAnswers
       );
 
+      // Transform the response to match frontend expectations
+      const result = response.data;
       return {
-        score: response.data.score || 0,
-        totalQuestions: response.data.totalQuestions || 0,
-        passed: response.data.passed || false,
-        requiredScore: response.data.requiredScore || 0
+        score: result.correctAnswers || 0,
+        totalQuestions: result.totalQuestions || 0,
+        passed: result.isPassed || false,
+        percentage: result.scorePercentage || 0,
+        formattedScore: result.formattedScore || "0%",
+        message: result.resultMessage || "",
+        quizId: result.quizId,
+        quizTitle: result.quizTitre
       };
     } catch (error) {
       console.error(`Erreur lors de la soumission du quiz:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupère la progression de l'utilisateur pour une formation (collaborateur)
+   */
+  getFormationProgress: async (formationId) => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      const collaborateurId = userData.id;
+      
+      if (!collaborateurId) {
+        throw new Error("Collaborateur ID not found");
+      }
+
+      // Get user's formations to find progress for this specific formation
+      const response = await API.get(`/api/collaborateur/formations/mes-formations/${collaborateurId}`);
+      const formations = response.data;
+      
+      const formation = formations.find(f => f.formationId.toString() === formationId.toString());
+      
+      if (!formation) {
+        return {
+          progress: 0,
+          completedModules: [],
+          totalModules: 0
+        };
+      }
+
+      return {
+        progress: Math.round(parseFloat(formation.progress || 0)),
+        completedModules: formation.completedModules || [],
+        totalModules: formation.totalModules || 0,
+        isCompleted: formation.completed || parseFloat(formation.progress || 0) >= 100
+      };
+    } catch (error) {
+      console.error(`Erreur lors de la récupération de la progression:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Met à jour la progression de l'utilisateur
+   */
+  updateProgress: async (formationId, newProgress) => {
+    try {
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      const collaborateurId = userData.id;
+      
+      if (!collaborateurId) {
+        throw new Error("Collaborateur ID not found");
+      }
+
+      const response = await API.put(
+        `/api/collaborateur/formations/progress/${collaborateurId}/${formationId}`,
+        newProgress
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour de la progression:`, error);
       throw error;
     }
   },
@@ -403,57 +552,7 @@ export const formationService = {
   },
 
   /**
-   * Récupère la progression d'une formation (collaborateur)
-   */
-  getFormationProgress: async (formationId) => {
-    try {
-      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-      const collaborateurId = userData.id;
-      
-      if (!collaborateurId) {
-        throw new Error("Collaborateur ID not found");
-      }
-
-      const response = await API.get(`/api/collaborateur/formations/mes-formations/${collaborateurId}`);
-      
-      const inscription = response.data.find(ins => ins.formationId === parseInt(formationId));
-      if (!inscription) {
-        return {
-          progress: 0,
-          completedModules: [],
-          completedContents: []
-        };
-      }
-
-      return {
-        progress: Math.round(parseFloat(inscription.progress || 0)),
-        completedModules: inscription.completedModules || [],
-        completedContents: inscription.completedContents || []
-      };
-    } catch (error) {
-      console.error(`Erreur lors de la récupération de la progression:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Met à jour la progression d'une formation (collaborateur)
-   */
-  updateProgress: async (collaborateurId, formationId, newProgress) => {
-    try {
-      const response = await API.put(
-        `/api/collaborateur/formations/progress/${collaborateurId}/${formationId}`,
-        newProgress
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Erreur lors de la mise à jour de la progression:`, error);
-      throw error;
-    }
-  },
-
-  /**
-   * Génère et télécharge un certificat (collaborateur)
+   * Génère et télécharge le certificat (collaborateur)
    */
   generateCertificate: async (formationId) => {
     try {
@@ -468,8 +567,8 @@ export const formationService = {
         `/api/collaborateur/formations/certificat/${collaborateurId}/${formationId}`,
         { responseType: 'blob' }
       );
-
-      return new Blob([response.data], { type: 'text/html' });
+      
+      return response.data;
     } catch (error) {
       console.error(`Erreur lors de la génération du certificat:`, error);
       throw error;

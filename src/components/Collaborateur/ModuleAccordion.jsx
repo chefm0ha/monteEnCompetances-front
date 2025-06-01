@@ -64,7 +64,7 @@ const ModuleAccordion = ({ formationId, modules, userProgress }) => {
   const isQuizUnlocked = (moduleId) => {
     // Quiz is unlocked if all contents in the module are completed
     const module = modules.find((m) => m.id === moduleId)
-    if (!module) return false
+    if (!module || !module.contents || module.contents.length === 0) return false
 
     return module.contents.every((content) => isContentCompleted(content.id))
   }
@@ -96,34 +96,46 @@ const ModuleAccordion = ({ formationId, modules, userProgress }) => {
               <div className="space-y-2">
                 {/* Module contents */}
                 <div className="space-y-1 mb-4">
-                  {module.contents.map((content) => (
-                    <Button
-                      key={content.id}
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => handleContentClick(module.id, content.id)}
-                    >
-                      {getContentIcon(content.type)}
-                      <span className="flex-1 text-left">{content.title}</span>
-                      {isContentCompleted(content.id) && <CheckCircle className="h-4 w-4 text-green-500 ml-2" />}
-                    </Button>
-                  ))}
+                  {module.contents && module.contents.length > 0 ? (
+                    module.contents.map((content) => (
+                      <Button
+                        key={content.id}
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => handleContentClick(module.id, content.id)}
+                      >
+                        {getContentIcon(content.type)}
+                        <span className="flex-1 text-left">{content.title}</span>
+                        {isContentCompleted(content.id) && <CheckCircle className="h-4 w-4 text-green-500 ml-2" />}
+                      </Button>
+                    ))
+                  ) : (
+                    <div className="text-center p-4 text-gray-500 text-sm">
+                      Ce module n'a pas encore de contenu
+                    </div>
+                  )}
                 </div>
 
                 {/* Quiz button */}
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  disabled={!isQuizUnlocked(module.id)}
-                  onClick={() => handleQuizClick(module.id)}
-                >
-                  <PlayCircle className="h-4 w-4 mr-2" />
-                  {isModuleCompleted(module.id)
-                    ? "Refaire le quiz"
-                    : isQuizUnlocked(module.id)
-                      ? "Commencer le quiz"
-                      : "Consultez tous les contenus pour débloquer le quiz"}
-                </Button>
+                {module.quiz && module.quiz.questions && module.quiz.questions.length > 0 ? (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    disabled={!isQuizUnlocked(module.id)}
+                    onClick={() => handleQuizClick(module.id)}
+                  >
+                    <PlayCircle className="h-4 w-4 mr-2" />
+                    {isModuleCompleted(module.id)
+                      ? "Refaire le quiz"
+                      : isQuizUnlocked(module.id)
+                        ? "Commencer le quiz"
+                        : "Consultez tous les contenus pour débloquer le quiz"}
+                  </Button>
+                ) : (
+                  <div className="text-center p-4 text-gray-500 text-sm">
+                    Ce module n'a pas de quiz
+                  </div>
+                )}
               </div>
             )}
           </AccordionContent>
