@@ -2,12 +2,14 @@
 
 import { createContext, useState, useContext, useEffect } from "react"
 import { chatbotService } from "../services/chatbotService"
+import { useAuth } from "./AuthContext"
 
 const ChatbotContext = createContext()
 
 export const useChatbot = () => useContext(ChatbotContext)
 
 export const ChatbotProvider = ({ children }) => {
+  const { currentUser } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([
     {
@@ -21,14 +23,16 @@ export const ChatbotProvider = ({ children }) => {
   const [sessionId, setSessionId] = useState(null)
   const [isHealthy, setIsHealthy] = useState(true)
 
-  // Initialize session on mount
+  // Initialize session and health check only when user is authenticated
   useEffect(() => {
-    const currentSession = chatbotService.getCurrentSessionId()
-    setSessionId(currentSession)
-    
-    // Check chatbot health on initialization
-    checkHealth()
-  }, [])
+    if (currentUser) {
+      const currentSession = chatbotService.getCurrentSessionId()
+      setSessionId(currentSession)
+      
+      // Check chatbot health only for authenticated users
+      checkHealth()
+    }
+  }, [currentUser])
 
   const checkHealth = async () => {
     try {

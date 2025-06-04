@@ -278,7 +278,6 @@ const FormationEdit = () => {
     setModules(updatedModules)
     setModulesChanged(true)
   }
-
   const saveModulesOrder = async () => {
     if (!modulesChanged) return
     
@@ -289,13 +288,23 @@ const FormationEdit = () => {
       const moduleIds = modules.map(module => module.id)
       
       // Use the formationService to update the module order
-      await formationService.reorderModules(id, moduleIds)
-        setModulesChanged(false)
+      const response = await formationService.reorderModules(id, moduleIds)
       
-      showToast.success("L'ordre des modules a été mis à jour avec succès.", "Ordre mis à jour");
+      if (response.success) {
+        setModulesChanged(false)
+        
+        // Update the modules list with the returned ordered modules if available
+        if (response.modules && response.modules.length > 0) {
+          setModules(response.modules)
+        }
+        
+        showToast.success(response.message || "L'ordre des modules a été mis à jour avec succès.", "Ordre mis à jour");
+      } else {
+        throw new Error(response.error || "Échec de la réorganisation des modules")
+      }
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'ordre des modules:", error)
-      showToast.error("Impossible de mettre à jour l'ordre des modules.");
+      showToast.error(error.message || "Impossible de mettre à jour l'ordre des modules.");
     } finally {
       setSaving(false)
     }

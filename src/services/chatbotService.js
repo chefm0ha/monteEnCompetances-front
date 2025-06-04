@@ -171,7 +171,7 @@ export const chatbotService = {
   },
 
   /**
-   * Vérifie l'état de santé du service chatbot
+   * Vérifie l'état de santé du service chatbot (pour les utilisateurs réguliers uniquement)
    * @returns {Promise<Object>} - L'état de santé du service
    */
   healthCheck: async () => {
@@ -195,27 +195,6 @@ export const chatbotService = {
   },
 
   /**
-   * Obtient les informations sur le service chatbot
-   * @returns {Promise<Object>} - Les informations du service
-   */
-  getServiceInfo: async () => {
-    try {
-      const response = await API.get("/api/chat/info")
-      return response.data
-    } catch (error) {
-      console.error("Error getting service info:", error)
-      return {
-        service: "Chatbot Service",
-        version: "Unknown",
-        description: "Service indisponible",
-        capabilities: "Non disponible",
-        memory: "Non disponible",
-        error: getErrorMessage(error)
-      }
-    }
-  },
-
-  /**
    * Obtient l'ID de session courante
    * @returns {string} - L'ID de session
    */
@@ -233,7 +212,7 @@ export const chatbotService = {
   },
 
   /**
-   * Vérifie si le service est en ligne
+   * Vérifie si le service est en ligne (pour les utilisateurs réguliers uniquement)
    * @returns {Promise<boolean>} - True si le service est opérationnel
    */
   isServiceOnline: async () => {

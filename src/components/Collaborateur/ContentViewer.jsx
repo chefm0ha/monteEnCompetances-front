@@ -54,7 +54,7 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead }) => {
       case "pdf":
         return (
           <div className="space-y-4">
-            {content.downloadUrl && (
+            {(content.downloadUrl || content.lien) && (
               <div className="flex justify-center">
                 <Button
                   onClick={() => handleDownloadSupport()}
@@ -64,12 +64,12 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead }) => {
                 </Button>
               </div>
             )}
-            {content.url && (
+            {(content.url || content.lien) && (
               <div className="w-full h-[70vh]">
                 <iframe 
-                  src={content.url} 
+                  src={content.url || content.lien} 
                   className="w-full h-full border-0" 
-                  title={content.title} 
+                  title={content.title || content.titre} 
                 />
               </div>
             )}
@@ -80,7 +80,7 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead }) => {
         return (
           <div className="w-full">
             <video
-              src={`${STORAGE_URL}/${content.url}`}
+              src={content.lien || content.url}
               controls
               className="w-full max-h-[70vh]"
               onEnded={handleMarkAsRead}
@@ -109,7 +109,7 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead }) => {
     <Card className="w-full">
       <CardContent className="p-6">
         <div className="mb-4">
-          <h2 className="text-2xl font-bold">{content.title}</h2>
+          <h2 className="text-2xl font-bold">{content.title || content.titre}</h2>
           {content.description && <p className="text-gray-600 mt-2">{content.description}</p>}
         </div>
 

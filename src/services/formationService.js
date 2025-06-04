@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_URL } from "../config";
+import { ModuleReorderRequest, ModuleReorderResponse } from "../types/moduleTypes";
 
 // Create axios instance with base configuration
 const API = axios.create({
@@ -615,6 +616,45 @@ export const formationService = {
       return response.data;
     } catch (error) {
       console.error(`Erreur lors de la mise à jour du module ${moduleId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Réorganise l'ordre des modules dans une formation (admin)
+   */
+  reorderModules: async (formationId, moduleIds) => {
+    try {
+      // Create and validate the request DTO
+      const request = new ModuleReorderRequest(moduleIds);
+      const requestData = request.toApiRequest();
+
+      const response = await API.put(`/api/admin/formations/${formationId}/modules/reorder`, requestData);
+      
+      // Return the response wrapped in our DTO
+      return ModuleReorderResponse.fromApiResponse(response.data);
+    } catch (error) {
+      console.error(`Erreur lors de la réorganisation des modules de la formation ${formationId}:`, error);
+      
+      // If it's a validation error from our DTO, re-throw it
+      if (error.message && error.message.includes("modules")) {
+        throw error;
+      }
+      
+      // Otherwise, wrap it in a generic error response
+      throw new Error(`Erreur lors de la réorganisation des modules: ${error.response?.data?.error || error.message}`);
+    }
+  },
+
+  /**
+   * Récupère les modules d'une formation dans l'ordre (admin)
+   */
+  getOrderedModulesByFormation: async (formationId) => {
+    try {
+      const response = await API.get(`/api/admin/formations/${formationId}/modules/ordered`);
+      return response.data;
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des modules ordonnés de la formation ${formationId}:`, error);
       throw error;
     }
   }

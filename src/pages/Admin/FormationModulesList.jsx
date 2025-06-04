@@ -143,22 +143,34 @@ const FormationModulesList = () => {
       const moduleIds = orderedModules.map(m => m.id);
       
       // Envoyer l'ordre au serveur
-      await moduleService.reorderModules(formationId, moduleIds);
+      const response = await moduleService.reorderModules(formationId, moduleIds);
       
-      Swal.fire({
-        title: "Ordre mis à jour",
-        text: "L'ordre des modules a été mis à jour avec succès.",
-        icon: "success",
-        timer: 1500,
-        showConfirmButton: false
-      });
+      if (response.success) {
+        // Update the modules list with the returned ordered modules if available
+        if (response.modules && response.modules.length > 0) {
+          setModules(response.modules);
+        }
+        
+        Swal.fire({
+          title: "Ordre mis à jour",
+          text: response.message || "L'ordre des modules a été mis à jour avec succès.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } else {
+        throw new Error(response.error || "Échec de la réorganisation des modules");
+      }
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'ordre des modules:", error);
       Swal.fire({
         icon: 'error',
         title: 'Erreur',
-        text: 'Impossible de mettre à jour l'ordre des modules.',
+        text: error.message || 'Impossible de mettre à jour l\'ordre des modules.',
       });
+      
+      // Revert the local changes on error
+      fetchData();
     } finally {
       setReordering(false);
     }
