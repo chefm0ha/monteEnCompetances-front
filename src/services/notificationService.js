@@ -15,20 +15,9 @@ const API = axios.create({
 // Add token to requests
 API.interceptors.request.use(
   (config) => {
-    // Log the request details
-    console.log("🚀 Making notification API request:", {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      fullURL: `${config.baseURL}${config.url}`,
-      baseURL: config.baseURL
-    })
-    
     const token = localStorage.getItem("token")
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log("🔑 Authorization token added to request")
-    } else {
-      console.warn("⚠️ No authorization token found in localStorage")
     }
     return config
   },
@@ -41,13 +30,6 @@ API.interceptors.request.use(
 // Handle responses and errors
 API.interceptors.response.use(
   (response) => {
-    console.log("✅ Notification API response received:", {
-      status: response.status,
-      statusText: response.statusText,
-      url: response.config.url,
-      dataType: typeof response.data,
-      dataLength: Array.isArray(response.data) ? response.data.length : 'N/A'
-    })
     return response
   },
   (error) => {

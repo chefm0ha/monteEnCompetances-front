@@ -273,38 +273,44 @@ export const formationService = {
       const modulesWithDetails = await Promise.all(
         modules.map(async (module) => {
           try {
-            // Get module details with supports
+            // Get module details with supports (which already includes quizs)
             const moduleDetails = await formationService.getModuleById(formationId, module.id);
             
-            // Get module quizzes
-            let quiz = null;
-            try {
-              const quizzes = await API.get(`/api/collaborateur/formations/modules/${module.id}/quizzes`);
-              if (quizzes.data && quizzes.data.length > 0) {
-                // Get full quiz details with questions
-                const quizResponse = await API.get(`/api/collaborateur/formations/quizzes/${quizzes.data[0].id}`);
-                quiz = {
-                  id: quizResponse.data.id,
-                  title: quizResponse.data.titre,
-                  seuilReussite: quizResponse.data.seuilReussite,
-                  questions: quizResponse.data.questions?.map(question => ({
-                    id: question.id,
-                    text: question.contenu,
-                    choices: question.choix?.map(choice => ({
-                      id: choice.id,
-                      text: choice.contenu,
-                      isCorrect: choice.estCorrect
-                    })) || []
-                  })) || []
-                };
+            // Enhance quiz data with full question details if available
+            let enhancedQuizs = moduleDetails.quizs || [];
+            if (enhancedQuizs.length > 0) {
+              try {
+                // Get full quiz details with questions for each quiz
+                enhancedQuizs = await Promise.all(
+                  enhancedQuizs.map(async (quiz) => {
+                    try {
+                      const quizResponse = await API.get(`/api/collaborateur/formations/quizzes/${quiz.id}`);
+                      return {
+                        ...quiz,
+                        questions: quizResponse.data.questions?.map(question => ({
+                          id: question.id,
+                          contenu: question.contenu,
+                          choix: question.choix?.map(choice => ({
+                            id: choice.id,
+                            contenu: choice.contenu,
+                            estCorrect: choice.estCorrect
+                          })) || []
+                        })) || []
+                      };
+                    } catch (quizError) {
+                      console.warn(`Error fetching details for quiz ${quiz.id}:`, quizError);
+                      return quiz; // Return basic quiz info if details fail
+                    }
+                  })
+                );
+              } catch (quizError) {
+                console.warn(`Error enhancing quiz data for module ${module.id}:`, quizError);
               }
-            } catch (quizError) {
-              console.warn(`No quiz found for module ${module.id}:`, quizError);
             }
             
             return {
               ...moduleDetails,
-              quiz
+              quizs: enhancedQuizs
             };
           } catch (moduleError) {
             console.error(`Error fetching details for module ${module.id}:`, moduleError);
@@ -355,13 +361,18 @@ export const formationService = {
    */
   getModuleById: async (formationId, moduleId) => {
     try {
+      console.log(`🔍 Fetching module ${moduleId} details...`);
       const response = await API.get(`/api/collaborateur/formations/modules/${moduleId}`);
       const module = response.data;
+      console.log(`✅ Module ${moduleId} basic info:`, module);
       
       // Get supports for this module
       let supports = [];
       try {
+        console.log(`🔍 Fetching supports for module ${moduleId}...`);
         const supportsResponse = await API.get(`/api/collaborateur/formations/modules/${moduleId}/supports`);
+        console.log(`✅ Supports response for module ${moduleId}:`, supportsResponse.data);
+        
         supports = supportsResponse.data.map(support => ({
           id: support.id,
           title: support.titre,
@@ -369,10 +380,13 @@ export const formationService = {
           type: support.type,
           url: support.lien,
           duration: support.duree,
-          downloadUrl: support.type === 'PDF' ? `/api/collaborateur/formations/supports/${support.id}/download` : null
+          downloadUrl: support.downloadUrl || (support.type === 'PDF' ? support.lien : null)
         }));
+        
+        console.log(`✅ Mapped supports for module ${moduleId}:`, supports);
       } catch (supportsError) {
-        console.warn(`No supports found for module ${moduleId}:`, supportsError);
+        console.error(`❌ Error fetching supports for module ${moduleId}:`, supportsError);
+        console.error('Response details:', supportsError.response);
       }
       
       return {
@@ -380,10 +394,12 @@ export const formationService = {
         title: module.titre,
         description: module.description,
         ordre: module.ordre,
+        quizs: module.quizs || [], // Preserve original quizs array
         contents: supports
       };
     } catch (error) {
-      console.error(`Erreur lors de la récupération du module ${moduleId}:`, error);
+      console.error(`❌ Error fetching module ${moduleId}:`, error);
+      console.error('Response details:', error.response);
       throw error;
     }
   },
@@ -444,7 +460,7 @@ export const formationService = {
 
       const quizId = quizzesResponse.data[0].id;
 
-      // Transform answers to expected format
+      // Transform answers to expected format for the new API
       const transformedAnswers = {};
       Object.keys(answers).forEach(questionId => {
         const answerId = answers[questionId];
@@ -453,25 +469,24 @@ export const formationService = {
         }
       });
 
+      // Use the new progress tracking quiz submission endpoint
       const response = await API.post(
         `/api/collaborateur/formations/quizzes/${quizId}/submit?collaborateurId=${collaborateurId}&formationId=${formationId}`,
         transformedAnswers
       );
 
       // Transform the response to match frontend expectations
-      const result = response.data;
+      const data = response.data;
       return {
-        score: result.correctAnswers || 0,
-        totalQuestions: result.totalQuestions || 0,
-        passed: result.isPassed || false,
-        percentage: result.scorePercentage || 0,
-        formattedScore: result.formattedScore || "0%",
-        message: result.resultMessage || "",
-        quizId: result.quizId,
-        quizTitle: result.quizTitre
+        ...data,
+        score: data.correctAnswers, // Map correctAnswers to score
+        totalQuestions: data.totalQuestions, // Map totalQuestions
+        message: data.resultMessage, // Map resultMessage to message
+        passed: data.isPassed, // Map isPassed to passed
+        formattedScore: data.formattedScore // Map formattedScore (should already be included in ...data, but being explicit)
       };
     } catch (error) {
-      console.error(`Erreur lors de la soumission du quiz:`, error);
+      console.error("Error submitting quiz:", error);
       throw error;
     }
   },
@@ -657,5 +672,81 @@ export const formationService = {
       console.error(`Erreur lors de la récupération des modules ordonnés de la formation ${formationId}:`, error);
       throw error;
     }
+  },
+
+  // ======== PROGRESS TRACKING ENDPOINTS ========
+
+  /**
+   * Marque un support comme vu par un collaborateur
+   */
+  markSupportAsSeen: async (supportId, collaborateurId) => {
+    try {
+      const response = await API.post(`/api/collaborateur/formations/supports/${supportId}/mark-seen/${collaborateurId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marking support as seen:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Vérifie si un support a été vu par un collaborateur
+   */
+  isSupportSeen: async (supportId, collaborateurId) => {
+    try {
+      const response = await API.get(`/api/collaborateur/formations/supports/${supportId}/is-seen/${collaborateurId}`);
+      return response.data.seen; // Extract the boolean value from the response
+    } catch (error) {
+      console.error('Error checking if support is seen:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Vérifie si un module est débloqué pour un collaborateur (progression séquentielle)
+   */
+  isModuleUnlocked: async (moduleId, collaborateurId) => {
+    try {
+      const response = await API.get(`/api/collaborateur/formations/modules/${moduleId}/is-unlocked/${collaborateurId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error checking module unlock status:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupère la progression détaillée d'une formation avec informations sur les modules
+   */
+  getFormationProgressWithModules: async (formationId, collaborateurId) => {
+    try {
+      const response = await API.get(`/api/collaborateur/formations/${formationId}/module-progress/${collaborateurId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting formation progress:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Récupère la progression des supports d'un module pour un collaborateur
+   */
+  getModuleSupportsProgress: async (moduleId, collaborateurId) => {
+    try {
+      const response = await API.get(`/api/collaborateur/formations/modules/${moduleId}/supports-progress/${collaborateurId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting module supports progress:', error);
+      throw error;
+    }
   }
 };
+
+// Export individual functions for direct import
+export const {
+  markSupportAsSeen,
+  isSupportSeen, 
+  isModuleUnlocked,
+  getFormationProgressWithModules,
+  getModuleSupportsProgress
+} = formationService;

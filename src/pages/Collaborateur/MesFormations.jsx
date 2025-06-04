@@ -319,17 +319,13 @@ const MesFormations = () => {
                           </div>
                           <span>{formation.type}</span>
                         </div>
-                        
-                        {/* Progress Bar */}
+                          {/* Progress Bar */}
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span>Progression</span>
                             <span>{formation.progress || 0}%</span>
                           </div>
                           <Progress value={formation.progress || 0} className="h-2" />
-                          <div className="text-xs text-gray-500">
-                            {formation.completedModules || 0} / {formation.totalModules || 0} modules complétés
-                          </div>
                         </div>
                         
                         <div className="flex justify-between items-center pt-2">

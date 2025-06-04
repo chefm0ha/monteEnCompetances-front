@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { formationService } from "../../services/formationService"
+import { useAuth } from "../../context/AuthContext"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Alert, AlertDescription } from "../../components/ui/alert"
@@ -15,6 +16,7 @@ import QuizQuestion from "../../components/Collaborateur/QuizQuestion"
 const Quiz = () => {
   const { formationId, moduleId } = useParams()
   const navigate = useNavigate()
+  const { currentUser } = useAuth()
   const [quiz, setQuiz] = useState(null)
   const [formation, setFormation] = useState(null)
   const [module, setModule] = useState(null)

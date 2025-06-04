@@ -4,6 +4,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { formationService } from "../../services/formationService"
+import { useAuth } from "../../context/AuthContext"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Alert, AlertDescription } from "../../components/ui/alert"
@@ -16,8 +17,10 @@ import Swal from 'sweetalert2'
 const FormationDetails = () => {
   const { formationId } = useParams()
   const navigate = useNavigate()
+  const { currentUser } = useAuth()
   const [formation, setFormation] = useState(null)
   const [userProgress, setUserProgress] = useState(null)
+  const [formationProgress, setFormationProgress] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -41,6 +44,22 @@ const FormationDetails = () => {
       const progressData = await formationService.getFormationProgress(formationId)
       console.log("✅ Progress data loaded:", progressData);
       setUserProgress(progressData)
+
+      // Get detailed formation progress with module completion status
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}")
+      const collaborateurId = userData.id
+      if (collaborateurId) {
+        const detailedProgressData = await formationService.getFormationProgressWithModules(formationId, collaborateurId)
+        console.log("✅ Detailed progress data loaded:", detailedProgressData);
+        setFormationProgress(detailedProgressData)
+      }
+
+      // Get detailed formation progress with module completion status
+      if (currentUser?.id) {
+        const detailedProgressData = await formationService.getFormationProgressWithModules(formationId, currentUser.id)
+        console.log("✅ Detailed progress data loaded:", detailedProgressData);
+        setFormationProgress(detailedProgressData)
+      }
 
     } catch (error) {
       console.error("❌ Error fetching formation details:", error)
@@ -97,6 +116,16 @@ const FormationDetails = () => {
 
   const handleRefresh = () => {
     fetchFormationDetails()
+  }
+
+  // Helper function to get accurate completed modules count
+  const getCompletedModulesCount = () => {
+    if (formationProgress?.modules) {
+      // Use the accurate API data that shows actual module completion status
+      return formationProgress.modules.filter(module => module.completed === true).length
+    }
+    // Fallback to userProgress if formationProgress not available
+    return userProgress?.completedModules?.length || 0
   }
 
   if (loading) {
@@ -247,16 +276,13 @@ const FormationDetails = () => {
 
           <div className="mb-6">
             <ProgressBar
-              value={userProgress?.completedModules?.length || 0}
+              value={getCompletedModulesCount()}
               total={formation.modules?.length || 0}
               className="mb-2"
               showPercentage={true}
             />
             <div className="text-sm text-gray-600">
-              {userProgress?.completedModules?.length || 0} sur {formation.modules?.length || 0} modules complétés
-              {userProgress?.progress > 0 && (
-                <span className="ml-2">• {userProgress.progress}% de progression</span>
-              )}
+              {getCompletedModulesCount()} sur {formation.modules?.length || 0} modules complétés
             </div>
           </div>
 
@@ -267,6 +293,8 @@ const FormationDetails = () => {
                 formationId={formationId} 
                 modules={formation.modules} 
                 userProgress={userProgress} 
+                formationProgress={formationProgress}
+                collaborateurId={currentUser?.id}
               />
             </>
           ) : (

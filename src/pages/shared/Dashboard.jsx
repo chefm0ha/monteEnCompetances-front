@@ -80,6 +80,15 @@ const Dashboard = () => {
       return { completed: 0, inProgress: 0, notStarted: 0, total: 0, totalHours: 0, completedHours: 0 }
     }
 
+    // Debugging: Log formation progress values
+    console.log("🔍 Dashboard formations data:", formations.map(f => ({
+      id: f.id,
+      title: f.title,
+      progress: f.progress,
+      completedModules: f.completedModules,
+      totalModules: f.totalModules
+    })));
+
     const completed = formations.filter((f) => f.progress === 100).length
     const inProgress = formations.filter((f) => f.progress > 0 && f.progress < 100).length
     const notStarted = formations.filter((f) => f.progress === 0).length
@@ -87,6 +96,8 @@ const Dashboard = () => {
     const completedHours = formations
       .filter(f => f.progress === 100)
       .reduce((sum, f) => sum + (f.duration || 0), 0)
+
+    console.log("📊 Dashboard stats:", { completed, inProgress, notStarted, total: formations.length });
 
     return { completed, inProgress, notStarted, total: formations.length, totalHours, completedHours }
   }

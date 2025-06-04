@@ -5,32 +5,53 @@ import { Button } from "../ui/button"
 import { Card, CardContent } from "../ui/card"
 import { Alert, AlertDescription } from "../ui/alert"
 import { CheckCircle, AlertTriangle } from "lucide-react"
-import { formationService } from "../../services/formationService"
+import { formationService, markSupportAsSeen, isSupportSeen } from "../../services/formationService"
 import { STORAGE_URL } from "../../config"
 
-const ContentViewer = ({ formationId, moduleId, content, onContentRead }) => {
+const ContentViewer = ({ formationId, moduleId, content, onContentRead, collaborateurId }) => {
+  console.log('🎬 ContentViewer rendered with content:', {
+    id: content?.id,
+    title: content?.title,
+    type: content?.type
+  })
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isRead, setIsRead] = useState(false)
+  const [hasBeenSeen, setHasBeenSeen] = useState(false)
 
   useEffect(() => {
-    // Reset state when content changes
-    setIsRead(content.isRead || false)
-  }, [content])
+    // Check if support has been seen
+    const checkSeenStatus = async () => {
+      if (!content.id || !collaborateurId) return
+
+      try {
+        // Check if support is already seen
+        const seen = await isSupportSeen(content.id, collaborateurId)
+        setHasBeenSeen(seen)
+        setIsRead(seen)
+      } catch (error) {
+        console.error("Error checking support seen status:", error)
+      }
+    }
+
+    checkSeenStatus()
+  }, [content.id, collaborateurId])
 
   const handleMarkAsRead = async () => {
-    if (isRead) return
+    if (hasBeenSeen) return
 
     setLoading(true)
     try {
-      await formationService.markContentAsRead(formationId, moduleId, content.id)
+      await markSupportAsSeen(content.id, collaborateurId)
+      setHasBeenSeen(true)
       setIsRead(true)
       if (onContentRead) {
         onContentRead(content.id)
       }
     } catch (error) {
-      console.error("Error marking content as read:", error)
-      setError("Impossible de marquer ce contenu comme lu. Veuillez réessayer.")
+      console.error("Error marking support as seen:", error)
+      setError("Impossible de marquer ce support comme lu. Veuillez réessayer.")
     } finally {
       setLoading(false)
     }
@@ -83,7 +104,6 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead }) => {
               src={content.lien || content.url}
               controls
               className="w-full max-h-[70vh]"
-              onEnded={handleMarkAsRead}
             />
           </div>
         )
@@ -123,16 +143,23 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead }) => {
         )}
 
         <div className="mt-6 flex justify-between items-center">
-          {isRead ? (
-            <div className="flex items-center text-green-600">
-              <CheckCircle className="h-5 w-5 mr-2" />
-              <span>Contenu consulté</span>
-            </div>
-          ) : (
-            <Button onClick={handleMarkAsRead} disabled={loading || isRead}>
-              Marquer comme lu
-            </Button>
-          )}
+          <Button 
+            onClick={handleMarkAsRead} 
+            disabled={loading || hasBeenSeen}
+            variant={hasBeenSeen ? "secondary" : "default"}
+            className={hasBeenSeen ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
+          >
+            {loading ? (
+              "Marquage en cours..."
+            ) : hasBeenSeen ? (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Marqué comme lu
+              </>
+            ) : (
+              "Marquer comme lu"
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
