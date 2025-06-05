@@ -1,8 +1,19 @@
 import Swal from 'sweetalert2';
 
+// Helper to determine if dark mode is enabled
+const isDarkMode = () => {
+  // Check for explicit theme setting in localStorage
+  const storedTheme = localStorage.getItem("montecompetance-theme");
+  
+  if (storedTheme === "dark") return true;
+  if (storedTheme === "light") return false;
+  
+  // If set to system or not set, check system preference
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+};
+
 // Toast-like notifications (appears at top-right)
-export const showToast = {
-  success: (message, title = 'Succès') => {
+export const showToast = {  success: (message, title = 'Succès') => {
     return Swal.fire({
       title,
       text: message,
@@ -12,13 +23,15 @@ export const showToast = {
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151',
+      iconColor: isDarkMode() ? '#34d399' : '#10b981',
       didOpen: (toast) => {
         toast.addEventListener('mouseenter', Swal.stopTimer);
         toast.addEventListener('mouseleave', Swal.resumeTimer);
       }
     });
   },
-  
   error: (message, title = 'Erreur') => {
     return Swal.fire({
       title,
@@ -29,13 +42,15 @@ export const showToast = {
       showConfirmButton: false,
       timer: 4000,
       timerProgressBar: true,
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151',
+      iconColor: isDarkMode() ? '#f87171' : '#ef4444',
       didOpen: (toast) => {
         toast.addEventListener('mouseenter', Swal.stopTimer);
         toast.addEventListener('mouseleave', Swal.resumeTimer);
       }
     });
   },
-  
   warning: (message, title = 'Attention') => {
     return Swal.fire({
       title,
@@ -46,13 +61,15 @@ export const showToast = {
       showConfirmButton: false,
       timer: 4000,
       timerProgressBar: true,
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151',
+      iconColor: isDarkMode() ? '#fbbf24' : '#f59e0b',
       didOpen: (toast) => {
         toast.addEventListener('mouseenter', Swal.stopTimer);
         toast.addEventListener('mouseleave', Swal.resumeTimer);
       }
     });
   },
-  
   info: (message, title = 'Information') => {
     return Swal.fire({
       title,
@@ -63,6 +80,9 @@ export const showToast = {
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151', 
+      iconColor: isDarkMode() ? '#60a5fa' : '#3b82f6',
       didOpen: (toast) => {
         toast.addEventListener('mouseenter', Swal.stopTimer);
         toast.addEventListener('mouseleave', Swal.resumeTimer);
@@ -79,37 +99,42 @@ export const showAlert = {
       text: message,
       icon: 'success',
       confirmButtonText: 'OK',
-      confirmButtonColor: '#10B981'
+      confirmButtonColor: '#10B981',
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151'
     });
   },
-  
-  error: (message, title = 'Erreur') => {
+    error: (message, title = 'Erreur') => {
     return Swal.fire({
       title,
       text: message,
       icon: 'error',
       confirmButtonText: 'OK',
-      confirmButtonColor: '#EF4444'
+      confirmButtonColor: '#EF4444',
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151'
     });
   },
-  
-  warning: (message, title = 'Attention') => {
+    warning: (message, title = 'Attention') => {
     return Swal.fire({
       title,
       text: message,
       icon: 'warning',
       confirmButtonText: 'OK',
-      confirmButtonColor: '#F59E0B'
+      confirmButtonColor: '#F59E0B',
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151'
     });
   },
-  
-  info: (message, title = 'Information') => {
+    info: (message, title = 'Information') => {
     return Swal.fire({
       title,
       text: message,
       icon: 'info',
       confirmButtonText: 'OK',
-      confirmButtonColor: '#3B82F6'
+      confirmButtonColor: '#3B82F6',
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151'
     });
   }
 };
@@ -126,11 +151,12 @@ export const showConfirmation = {
       cancelButtonColor: '#6B7280',
       confirmButtonText: 'Oui, supprimer',
       cancelButtonText: 'Annuler',
-      reverseButtons: true
+      reverseButtons: true,
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151'
     });
   },
-  
-  action: (message, title = 'Confirmer l\'action', confirmText = 'Confirmer') => {
+    action: (message, title = 'Confirmer l\'action', confirmText = 'Confirmer') => {
     return Swal.fire({
       title,
       text: message,
@@ -140,11 +166,12 @@ export const showConfirmation = {
       cancelButtonColor: '#6B7280',
       confirmButtonText: confirmText,
       cancelButtonText: 'Annuler',
-      reverseButtons: true
+      reverseButtons: true,
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151'
     });
   },
-  
-  logout: () => {
+    logout: () => {
     return Swal.fire({
       title: 'Se déconnecter ?',
       text: 'Vous allez être déconnecté de l\'application.',
@@ -154,7 +181,9 @@ export const showConfirmation = {
       cancelButtonColor: '#6B7280',
       confirmButtonText: 'Se déconnecter',
       cancelButtonText: 'Annuler',
-      reverseButtons: true
+      reverseButtons: true,
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151'
     });
   }
 };
@@ -166,6 +195,8 @@ export const showLoading = (title = 'Chargement en cours...') => {
     allowOutsideClick: false,
     allowEscapeKey: false,
     showConfirmButton: false,
+    background: isDarkMode() ? '#1f2937' : '#ffffff',
+    color: isDarkMode() ? '#f3f4f6' : '#374151',
     didOpen: () => {
       Swal.showLoading();
     }
@@ -178,8 +209,7 @@ export const closeSwal = () => {
 };
 
 // Input dialogs
-export const showInput = {
-  text: (title, placeholder = '', inputValue = '') => {
+export const showInput = {  text: (title, placeholder = '', inputValue = '') => {
     return Swal.fire({
       title,
       input: 'text',
@@ -188,6 +218,8 @@ export const showInput = {
       showCancelButton: true,
       confirmButtonText: 'Confirmer',
       cancelButtonText: 'Annuler',
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151',
       inputValidator: (value) => {
         if (!value) {
           return 'Vous devez saisir une valeur !';
@@ -195,8 +227,7 @@ export const showInput = {
       }
     });
   },
-  
-  textarea: (title, placeholder = '', inputValue = '') => {
+    textarea: (title, placeholder = '', inputValue = '') => {
     return Swal.fire({
       title,
       input: 'textarea',
@@ -205,6 +236,8 @@ export const showInput = {
       showCancelButton: true,
       confirmButtonText: 'Confirmer',
       cancelButtonText: 'Annuler',
+      background: isDarkMode() ? '#1f2937' : '#ffffff',
+      color: isDarkMode() ? '#f3f4f6' : '#374151',
       inputValidator: (value) => {
         if (!value) {
           return 'Vous devez saisir une valeur !';
@@ -251,6 +284,57 @@ export const showCustomAlert = (title, html, icon = 'info') => {
     html,
     icon,
     confirmButtonText: 'OK',
-    allowHtml: true
+    allowHtml: true,    background: isDarkMode() ? '#1f2937' : '#ffffff',
+    color: isDarkMode() ? '#f3f4f6' : '#374151'
+  });
+};
+
+// Listen for theme changes
+if (typeof window !== 'undefined') {
+  // Function to update SweetAlert's defaults based on current theme
+  const updateSweetAlertDefaults = () => {
+    const darkMode = isDarkMode();
+    
+    // Update SweetAlert defaults for theme
+    Swal.defaultParams = {
+      ...Swal.defaultParams,
+      background: darkMode ? '#1f2937' : '#ffffff',
+      color: darkMode ? '#f3f4f6' : '#374151'
+    };
+  };
+
+  // Initialize defaults
+  updateSweetAlertDefaults();
+  
+  // Watch for class changes on the html element
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'class' && 
+          (mutation.target.classList.contains('dark') || 
+           !mutation.target.classList.contains('dark'))) {
+        updateSweetAlertDefaults();
+      }
+    });
+  });
+  
+  // Start observing the HTML element for class changes
+  observer.observe(document.documentElement, { attributes: true });
+  
+  // Also watch for system preference changes
+  const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  if (darkModeMediaQuery.addEventListener) {
+    darkModeMediaQuery.addEventListener('change', updateSweetAlertDefaults);
+  }
+    // Watch for changes to the theme in localStorage
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'montecompetance-theme' || event.key === 'montecompetance-theme-preference') {
+      updateSweetAlertDefaults();
+    }
+  });
+  
+  // Listen for the custom themechange event
+  window.addEventListener('themechange', () => {
+    // Short timeout to ensure DOM updates have completed
+    setTimeout(updateSweetAlertDefaults, 10);
   });
 };

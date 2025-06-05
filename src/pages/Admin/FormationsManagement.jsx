@@ -345,11 +345,9 @@ const FormationsManagement = () => {
             </div>
           )}
         </CardContent>
-      </Card>
-
-      {/* Dialog for adding a new module */}
+      </Card>      {/* Dialog for adding a new module */}
       <Dialog open={isModuleDialogOpen} onOpenChange={setIsModuleDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] bg-white">
           <DialogHeader>
             <DialogTitle>
               Ajouter un module à {selectedFormation?.titre}

@@ -28,7 +28,7 @@ const QuizQuestion = ({ question, selectedAnswer, onAnswerSelect, showResults = 
             let className = ""
             if (showResults) {
               if (isCorrectAnswer) {
-                className = "border-green-500 bg-green-50"
+                className = "border-blue-500 bg-blue-50"
               } else if (isSelected && !isCorrectAnswer) {
                 className = "border-red-500 bg-red-50"
               }
@@ -47,7 +47,7 @@ const QuizQuestion = ({ question, selectedAnswer, onAnswerSelect, showResults = 
                 <Label htmlFor={`choice-${question.id}-${choice.id}`} className="flex-grow cursor-pointer">
                   {choice.text}
                 </Label>
-                {showResults && isCorrectAnswer && <span className="text-green-600 text-sm font-medium">Correct</span>}
+                {showResults && isCorrectAnswer && <span className="text-blue-600 text-sm font-medium">Correct</span>}
               </div>
             )
           })}

@@ -1,6 +1,7 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "./components/ui/toaster"
+import { ThemeProvider } from "./components/shared/theme-provider"
 import { AuthProvider } from "./context/AuthContext"
 import { ChatbotProvider } from "./context/ChatbotContext"
 import { SidebarProvider } from "./context/SidebarContext"
@@ -25,19 +26,21 @@ import FormationDetails from "./pages/Collaborateur/FormationDetails"
 import ModuleContent from "./pages/Collaborateur/ModuleContent"
 import Quiz from "./pages/Collaborateur/Quiz"
 import Certificate from "./pages/Collaborateur/Certificate"
-import NotificationsPage from "./pages/Admin/NotificationsPage"
+import AdminNotificationsPage from "./pages/Admin/NotificationsPage"
+import CollaborateurNotificationsPage from "./pages/Collaborateur/NotificationsPage"
 import NotFound from "./pages/shared/NotFound"
 import ChatbotWidget from "./components/shared/ChatbotWidget"
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <NotificationProvider>
-          <ChatbotProvider>
-            <SidebarProvider>
-              <div className="min-h-screen bg-gray-50">
-                <Routes>
+    <ThemeProvider defaultTheme="system" storageKey="montecompetance-theme">
+      <Router>
+        <AuthProvider>
+          <NotificationProvider>
+            <ChatbotProvider>
+              <SidebarProvider>
+                <div className="min-h-screen bg-background transition-colors duration-300">
+                  <Routes>
                   {/* Public routes without sidebar */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -52,6 +55,7 @@ function App() {
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/mes-formations" element={<MesFormations />} />
                       <Route path="/mes-certificats" element={<MesCertificats />} />
+                      <Route path="/notifications" element={<CollaborateurNotificationsPage />} />
                       <Route path="/formation/:formationId" element={<FormationDetails />} />
                       <Route path="/formation/:formationId/module/:moduleId" element={<ModuleContent />} />
                       <Route path="/formation/:formationId/module/:moduleId/quiz" element={<Quiz />} />
@@ -63,7 +67,7 @@ function App() {
                       <Route path="/admin/dashboard" element={<AdminDashboard />} />
                       
                       {/* Notifications */}
-                      <Route path="/admin/notifications" element={<NotificationsPage />} />
+                      <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
                       
                       {/* Collaborateurs management */}
                       <Route path="/admin/collaborateurs" element={<CollaborateursManagement />} />
@@ -97,6 +101,7 @@ function App() {
         </NotificationProvider>
       </AuthProvider>
     </Router>
+  </ThemeProvider>
   )
 }
 

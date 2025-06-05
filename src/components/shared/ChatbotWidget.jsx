@@ -9,11 +9,14 @@ import { ScrollArea } from "../ui/scroll-area"
 import { MessageCircle, X, Send, Loader2, RotateCcw, AlertCircle, CheckCircle } from "lucide-react"
 import { useChatbot } from "../../context/ChatbotContext"
 import { useAuth } from "../../context/AuthContext"
+import { useTheme } from "./theme-provider"
 import { APP_SETTINGS } from "../../config"
 import { Badge } from "../ui/badge"
+import { getThemeLogo } from "../../lib/utils"
 
 const ChatbotWidget = () => {
   const location = useLocation()
+  const { theme } = useTheme()
   const { 
     isOpen, 
     messages, 
@@ -26,7 +29,14 @@ const ChatbotWidget = () => {
     checkHealth 
   } = useChatbot()
   
-  const { currentUser } = useAuth()
+  // Safely access auth context
+  let authData = { currentUser: null };
+  try {
+    authData = useAuth() || { currentUser: null };
+  } catch (error) {
+    console.error("Error using AuthContext in ChatbotWidget:", error);
+  }
+  const { currentUser } = authData
   const [inputValue, setInputValue] = useState("")
   const [showHealth, setShowHealth] = useState(false)
   const messagesEndRef = useRef(null)
@@ -99,15 +109,20 @@ const ChatbotWidget = () => {
 
   return (
     <Card 
-      className="fixed bottom-6 right-6 w-80 md:w-96 h-[500px] shadow-xl flex flex-col z-50 bg-white border border-gray-200"
-      style={{ backgroundColor: '#ffffff', opacity: 1 }}
+      className="fixed bottom-6 right-6 w-80 md:w-96 h-[500px] shadow-xl flex flex-col z-50 border"
+      style={{ 
+        backgroundColor: theme === 'dark' ? 'hsl(222.2 84% 9.9%)' : 'white',
+        boxShadow: theme === "dark" ? "0 10px 15px -3px rgba(0, 0, 0, 0.5)" : "0 10px 15px -3px rgba(0, 0, 0, 0.1)" 
+      }}
     >
       <CardHeader 
-        className="px-4 py-3 border-b flex flex-row items-center justify-between bg-white"
-        style={{ backgroundColor: '#ffffff' }}
+        className="px-4 py-3 border-b flex flex-row items-center justify-between"
+        style={{ 
+          backgroundColor: theme === 'dark' ? 'hsl(222.2 84% 7.9%)' : 'white' 
+        }}
       >
         <div className="flex items-center space-x-2">
-          <img src={APP_SETTINGS.logoUrl || "/placeholder.svg"} alt="Chatbot" className="h-6 w-6" />
+          <img src={getThemeLogo(theme)} alt="Chatbot" className="h-6 w-6" />
           <CardTitle className="text-lg">Assistant</CardTitle>
           <Badge 
             variant={isHealthy ? "default" : "destructive"}
@@ -161,8 +176,10 @@ const ChatbotWidget = () => {
       )}
 
       <ScrollArea 
-        className="flex-grow p-4 bg-white" 
-        style={{ backgroundColor: '#ffffff' }}
+        className="flex-grow p-4"
+        style={{ 
+          backgroundColor: theme === 'dark' ? 'hsl(222.2 84% 9.9%)' : 'white' 
+        }}
       >
         <div className="space-y-4">
           {messages.map((message) => (
@@ -172,8 +189,8 @@ const ChatbotWidget = () => {
                   message.sender === "user" 
                     ? "bg-primary text-primary-foreground" 
                     : message.isError 
-                      ? "bg-red-100 border border-red-200 text-red-800" 
-                      : "bg-muted"
+                      ? "bg-destructive/20 border border-destructive/30 text-destructive" 
+                      : "bg-muted text-muted-foreground"
                 }`}
               >
                 <p className="text-sm">{message.text}</p>
@@ -189,7 +206,7 @@ const ChatbotWidget = () => {
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div className="max-w-[80%] rounded-lg px-4 py-2 bg-muted">
+              <div className="max-w-[80%] rounded-lg px-4 py-2 bg-muted text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
             </div>
@@ -199,8 +216,10 @@ const ChatbotWidget = () => {
       </ScrollArea>
 
       <CardFooter 
-        className="p-2 border-t bg-white" 
-        style={{ backgroundColor: '#ffffff' }}
+        className="p-2 border-t"
+        style={{ 
+          backgroundColor: theme === 'dark' ? 'hsl(222.2 84% 7.9%)' : 'white' 
+        }}
       >
         <form onSubmit={handleSubmit} className="flex w-full gap-2">
           <Input

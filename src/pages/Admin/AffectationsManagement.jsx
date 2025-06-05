@@ -503,21 +503,19 @@ const AffectationsManagement = () => {
                           <TableRow key={participant.collaborateurId}>
                             <TableCell>
                               {participant.collaborateurFullName || `${participant.collaborateurPrenom} ${participant.collaborateurNom}`}
-                            </TableCell>
-                            <TableCell>
+                            </TableCell>                            <TableCell>
                               <div className="flex items-center space-x-2">
                                 <Progress
-                                  value={Math.round(participant.progress * 100) || 0}
+                                  value={Math.round(participant.progress) || 0}
                                   className="w-full h-2 max-w-[100px]"
                                 />
                                 <span className="text-xs font-medium min-w-[35px]">
-                                  {Math.round(participant.progress * 100) || 0}%
+                                  {Math.round(participant.progress) || 0}%
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell>
-                              {participant.completed ? (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <TableCell>                              {participant.completed ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                   Terminé
                                 </span>
                               ) : participant.progress > 0 ? (

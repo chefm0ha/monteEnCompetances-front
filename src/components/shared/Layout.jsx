@@ -10,7 +10,7 @@ const Layout = ({ children }) => {
   const { collapsed } = useSidebar()
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-background flex transition-colors duration-300">
       {/* Sidebar */}
       <Sidebar />
       

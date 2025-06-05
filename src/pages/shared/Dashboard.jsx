@@ -232,11 +232,11 @@ const Dashboard = () => {
       {formations.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <BookOpen className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">
               Aucune formation assignée
             </h3>
-            <p className="text-gray-500 text-center mb-4">
+            <p className="text-muted-foreground text-center mb-4">
               Vous n'avez pas encore de formations assignées. 
               Contactez votre administrateur pour obtenir l'accès aux formations.
             </p>
@@ -262,8 +262,8 @@ const Dashboard = () => {
             <CardContent>
               {getRecentFormations().length === 0 ? (
                 <div className="text-center py-6">
-                  <Target className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                  <p className="text-gray-500">Toutes vos formations sont terminées !</p>
+                  <Target className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">Toutes vos formations sont terminées !</p>
                   <Button 
                     className="mt-3" 
                     onClick={() => navigate('/mes-formations')}
@@ -276,7 +276,7 @@ const Dashboard = () => {
                   {getRecentFormations().map((formation) => (
                     <div 
                       key={formation.id}
-                      className="flex items-center gap-4 p-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="flex items-center gap-4 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
                       onClick={() => handleFormationClick(formation.id)}
                     >
                       <img
@@ -291,10 +291,10 @@ const Dashboard = () => {
                         <h4 className="font-medium line-clamp-1">{formation.title}</h4>
                         <div className="flex items-center gap-2 mt-1">
                           <Progress value={formation.progress || 0} className="h-2 flex-1" />
-                          <span className="text-xs text-gray-500">{formation.progress || 0}%</span>
+                          <span className="text-xs text-muted-foreground">{formation.progress || 0}%</span>
                         </div>
                       </div>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </div>
                   ))}
                   <Button 
@@ -320,9 +320,9 @@ const Dashboard = () => {
             <CardContent>
               {getCompletedFormations().length === 0 ? (
                 <div className="text-center py-6">
-                  <Award className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                  <p className="text-gray-500">Aucune formation terminée pour le moment</p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <Award className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">Aucune formation terminée pour le moment</p>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Complétez vos formations pour obtenir vos premiers certificats !
                   </p>
                 </div>
@@ -379,7 +379,7 @@ const Dashboard = () => {
               <BookOpen className="h-5 w-5 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Mes formations</div>
-                <div className="text-xs text-gray-500">Voir toutes mes formations</div>
+                <div className="text-xs text-muted-foreground">Voir toutes mes formations</div>
               </div>
             </Button>
             
@@ -391,7 +391,7 @@ const Dashboard = () => {
               <Award className="h-5 w-5 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Mes certificats</div>
-                <div className="text-xs text-gray-500">Télécharger mes certificats</div>
+                <div className="text-xs text-muted-foreground">Télécharger mes certificats</div>
               </div>
             </Button>
             
@@ -403,7 +403,7 @@ const Dashboard = () => {
               <CheckCircle className="h-5 w-5 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Mon profil</div>
-                <div className="text-xs text-gray-500">Gérer mes informations</div>
+                <div className="text-xs text-muted-foreground">Gérer mes informations</div>
               </div>
             </Button>
             
@@ -424,7 +424,7 @@ const Dashboard = () => {
               <Play className="h-5 w-5 mr-3" />
               <div className="text-left">
                 <div className="font-medium">Continuer</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   {formations.length === 0 ? "Aucune formation" : "Reprendre ma formation"}
                 </div>
               </div>

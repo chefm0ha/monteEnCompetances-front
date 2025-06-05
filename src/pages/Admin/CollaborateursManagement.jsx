@@ -343,7 +343,7 @@ const CollaborateursManagement = () => {
               </thead>
               <tbody>
                 {collaborateurs.map((collab) => (
-                  <tr key={collab.id} className="border-b hover:bg-gray-50">
+                  <tr key={collab.id} className="border-b hover:bg-accent/50">
                     <td className="py-3 px-4">
                       {collab.firstName} {collab.lastName}
                     </td>
@@ -367,7 +367,7 @@ const CollaborateursManagement = () => {
                 ))}
                 {collaborateurs.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="py-6 text-center text-gray-500">
+                    <td colSpan={5} className="py-6 text-center text-muted-foreground">
                       Aucun collaborateur trouvé
                       {activeFiltersCount > 0 && " avec les filtres appliqués"}
                     </td>
@@ -381,7 +381,7 @@ const CollaborateursManagement = () => {
 
       {/* Dialog de confirmation de suppression */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="bg-white">
+        <DialogContent className="bg-background">
           <DialogHeader>
             <DialogTitle>Confirmer la suppression</DialogTitle>
             <DialogDescription>
@@ -416,7 +416,7 @@ const CollaborateursManagement = () => {
         }
         setIsAddDialogOpen(open);
       }}>
-        <DialogContent className="bg-white">
+        <DialogContent className="bg-background">
           <DialogHeader>
             <DialogTitle>Ajouter un collaborateur</DialogTitle>
             <DialogDescription>Remplissez le formulaire pour ajouter un nouveau collaborateur.</DialogDescription>
@@ -435,7 +435,7 @@ const CollaborateursManagement = () => {
 
       {/* Dialog de filtre */}
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-        <DialogContent className="bg-white">
+        <DialogContent className="bg-background">
           <DialogHeader>
             <DialogTitle>Filtrer les collaborateurs</DialogTitle>
             <DialogDescription>Sélectionnez les critères pour filtrer la liste des collaborateurs.</DialogDescription>
@@ -451,10 +451,10 @@ const CollaborateursManagement = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les postes" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="all" className="cursor-pointer hover:bg-gray-100">Tous les postes</SelectItem>
+                <SelectContent className="bg-background border-border">
+                  <SelectItem value="all" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Tous les postes</SelectItem>
                   {postes.map((poste) => (
-                    <SelectItem key={poste} value={poste} className="cursor-pointer hover:bg-gray-100">
+                    <SelectItem key={poste} value={poste} className="cursor-pointer hover:bg-accent hover:text-accent-foreground">
                       {poste}
                     </SelectItem>
                   ))}
@@ -471,9 +471,9 @@ const CollaborateursManagement = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Tri" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="recent" className="cursor-pointer hover:bg-gray-100">Plus récent</SelectItem>
-                  <SelectItem value="name" className="cursor-pointer hover:bg-gray-100">Nom (A-Z)</SelectItem>
+                <SelectContent className="bg-background border-border">
+                  <SelectItem value="recent" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Plus récent</SelectItem>
+                  <SelectItem value="name" className="cursor-pointer hover:bg-accent hover:text-accent-foreground">Nom (A-Z)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

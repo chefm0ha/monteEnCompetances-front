@@ -33,16 +33,12 @@ const FormationDetails = () => {
       setLoading(true)
       setError(null)
 
-      console.log("🔍 Fetching formation details for ID:", formationId);
-
       // Get formation details with modules, supports and quizzes using the new method
       const formationData = await formationService.getFormationWithDetails(formationId)
-      console.log("✅ Formation data loaded:", formationData);
       setFormation(formationData)
 
       // Get user progress
       const progressData = await formationService.getFormationProgress(formationId)
-      console.log("✅ Progress data loaded:", progressData);
       setUserProgress(progressData)
 
       // Get detailed formation progress with module completion status
@@ -50,20 +46,16 @@ const FormationDetails = () => {
       const collaborateurId = userData.id
       if (collaborateurId) {
         const detailedProgressData = await formationService.getFormationProgressWithModules(formationId, collaborateurId)
-        console.log("✅ Detailed progress data loaded:", detailedProgressData);
         setFormationProgress(detailedProgressData)
       }
 
       // Get detailed formation progress with module completion status
       if (currentUser?.id) {
         const detailedProgressData = await formationService.getFormationProgressWithModules(formationId, currentUser.id)
-        console.log("✅ Detailed progress data loaded:", detailedProgressData);
         setFormationProgress(detailedProgressData)
       }
 
     } catch (error) {
-      console.error("❌ Error fetching formation details:", error)
-      
       if (error.response?.status === 401) {
         setError("Session expirée. Veuillez vous reconnecter.")
       } else if (error.response?.status === 404) {
@@ -80,8 +72,6 @@ const FormationDetails = () => {
 
   const handleDownloadCertificate = async () => {
     try {
-      console.log("🏆 Generating certificate for formation:", formationId);
-      
       const certificateBlob = await formationService.generateCertificate(formationId)
       
       // Create download link
@@ -261,13 +251,13 @@ const FormationDetails = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-6">
             <div className="flex items-center gap-4">
               <div className="flex items-center">
                 <Clock className="h-4 w-4 mr-1" />
                 <span>{formation.duration} heures</span>
               </div>
-              <span className="px-2 py-1 bg-gray-100 rounded text-xs">{formation.type}</span>
+              <span className="px-2 py-1 bg-muted rounded text-xs">{formation.type}</span>
             </div>
             {isFormationCompleted && (
               <span className="text-green-600 font-medium">✅ Formation terminée</span>
@@ -281,7 +271,7 @@ const FormationDetails = () => {
               className="mb-2"
               showPercentage={true}
             />
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               {getCompletedModulesCount()} sur {formation.modules?.length || 0} modules complétés
             </div>
           </div>

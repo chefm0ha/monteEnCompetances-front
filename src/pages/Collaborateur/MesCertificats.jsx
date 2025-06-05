@@ -165,8 +165,7 @@ const MesCertificats = () => {
             >
               <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2 mb-2">
+                  <div className="flex-1">                    <CardTitle className="text-lg line-clamp-2 mb-2 text-gray-900">
                       {certificate.formationTitle}
                     </CardTitle>
                     <div className="flex items-center gap-4 text-sm text-gray-600">

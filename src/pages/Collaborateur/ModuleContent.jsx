@@ -1,7 +1,8 @@
+// src/pages/Collaborateur/ModuleContent.jsx
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { formationService, isSupportSeen } from "../../services/formationService"
 import { useAuth } from "../../context/AuthContext"
 import { Button } from "../../components/ui/button"
@@ -16,6 +17,7 @@ import Swal from 'sweetalert2'
 const ModuleContent = () => {
   const { formationId, moduleId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { currentUser } = useAuth()
   const [module, setModule] = useState(null)
   const [formation, setFormation] = useState(null)
@@ -35,28 +37,28 @@ const ModuleContent = () => {
 
         // Get module details
         const moduleData = await formationService.getModuleById(formationId, moduleId)
-        console.log('📦 Module data loaded:', {
-          moduleId: moduleData.id,
-          title: moduleData.title,
-          contentsCount: moduleData.contents?.length,
-          contents: moduleData.contents?.map((c, i) => ({
-            index: i,
-            id: c.id,
-            title: c.title,
-            type: c.type,
-            content: c.content?.substring(0, 50) + '...' // Show first 50 chars
-          }))
-        })
         setModule(moduleData)
 
         // Get user progress
         const progressData = await formationService.getFormationProgress(formationId)
         setUserProgress(progressData)
 
-        // Set active content to the first one
+        // FIXED: Check for content index in URL parameters
+        const contentIndexFromUrl = searchParams.get('content')
+        
         if (moduleData.contents && moduleData.contents.length > 0) {
-          setActiveContent(moduleData.contents[0])
-          setActiveTab("0")
+          let targetIndex = 0
+          
+          // If content index is specified in URL, use it
+          if (contentIndexFromUrl !== null) {
+            const parsedIndex = parseInt(contentIndexFromUrl)
+            if (!isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < moduleData.contents.length) {
+              targetIndex = parsedIndex
+            }
+          }
+          
+          setActiveContent(moduleData.contents[targetIndex])
+          setActiveTab(targetIndex.toString())
         }
 
         // Check if all content is read after setting the module data
@@ -69,7 +71,6 @@ const ModuleContent = () => {
           setAllContentRead(allRead)
         }
       } catch (error) {
-        console.error("Error fetching module content:", error)
         setError("Impossible de récupérer le contenu du module. Veuillez réessayer plus tard.")
       } finally {
         setLoading(false)
@@ -77,9 +78,7 @@ const ModuleContent = () => {
     }
 
     fetchData()
-  }, [formationId, moduleId, currentUser?.id])
-
-
+  }, [formationId, moduleId, currentUser?.id, searchParams]) // Added searchParams to dependencies
 
   const handleContentChange = (value) => {
     console.log('🔄 handleContentChange called with:', { value, type: typeof value })
@@ -91,6 +90,10 @@ const ModuleContent = () => {
       console.log('🔄 Setting active content to:', module.contents[index])
       setActiveContent(module.contents[index])
       setActiveTab(value)
+      
+      // FIXED: Update URL to reflect current content
+      const newUrl = `/formation/${formationId}/module/${moduleId}?content=${index}`
+      navigate(newUrl, { replace: true })
     } else {
       console.error('🔄 Content not found at index:', index)
     }
@@ -116,19 +119,14 @@ const ModuleContent = () => {
         )
         const readStatuses = await Promise.all(readStatusPromises)
         const allRead = readStatuses.every(status => status === true)
-        console.log('Content read status check:', { readStatuses, allRead })
         setAllContentRead(allRead)
       } catch (error) {
-        console.error('Error checking content read status:', error)
         // Fallback to local state
         const allRead = updatedContents.every(content => content.isRead)
-        console.log('Fallback content read status:', { allRead })
         setAllContentRead(allRead)
       }
     }
   }
-
-
 
   const isLastContent = () => {
     if (!module?.contents || module.contents.length === 0) return false
@@ -136,14 +134,8 @@ const ModuleContent = () => {
   }
 
   const hasQuiz = () => {
-    const hasQuizResult = module?.quizs && module.quizs.length > 0 && module.quizs[0].questions && module.quizs[0].questions.length > 0
-    console.log('🧪 Has quiz check:', { 
-      moduleQuizs: module?.quizs, 
-      hasQuizResult,
-      quizLength: module?.quizs?.length,
-      firstQuiz: module?.quizs?.[0],
-      questionsLength: module?.quizs?.[0]?.questions?.length
-    })
+    // Check if module has any quiz, regardless of questions being populated
+    const hasQuizResult = module?.quizs && module.quizs.length > 0
     return hasQuizResult
   }
 
@@ -231,38 +223,28 @@ const ModuleContent = () => {
         <CardContent className="p-6">
           <h2 className="text-2xl font-bold mb-6">{module.title}</h2>
 
-          {/* Custom Tab Implementation */}
-          <div className="w-full">
-            {/* Tab Headers - Removed to hide content navigation buttons */}
 
-            {/* Tab Content */}
-            {module.contents && module.contents.length > 0 && module.contents.map((content, index) => (
-              <div 
-                key={content.id} 
-                style={{ display: index.toString() === activeTab ? 'block' : 'none' }}
-                className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                {console.log('🎯 Rendering custom content for tab:', { 
-                  index: index.toString(), 
-                  activeTab, 
-                  isActive: index.toString() === activeTab,
-                  contentTitle: content.title,
-                  contentId: content.id
-                })}
-                <ContentViewer
-                  key={`${content.id}-${index.toString() === activeTab}`}
-                  formationId={formationId}
-                  moduleId={moduleId}
-                  content={{
-                    ...content,
-                    isRead: content.isRead || userProgress?.completedContents?.includes(content.id),
-                  }}
-                  onContentRead={handleContentRead}
-                  collaborateurId={currentUser?.id}
-                />
-              </div>
-            ))}
-          </div>
+
+          {/* Tab Content */}
+          {module.contents && module.contents.length > 0 && module.contents.map((content, index) => (
+            <div 
+              key={content.id} 
+              style={{ display: index.toString() === activeTab ? 'block' : 'none' }}
+              className="mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <ContentViewer
+                key={`${content.id}-${index.toString() === activeTab}`}
+                formationId={formationId}
+                moduleId={moduleId}
+                content={{
+                  ...content,
+                  isRead: content.isRead || userProgress?.completedContents?.includes(content.id),
+                }}
+                onContentRead={handleContentRead}
+                collaborateurId={currentUser?.id}
+              />
+            </div>
+          ))}
 
           <div className="flex justify-between mt-6">
             <Button variant="outline" onClick={handlePreviousContent} disabled={Number.parseInt(activeTab) === 0}>
@@ -270,19 +252,15 @@ const ModuleContent = () => {
               Précédent
             </Button>
 
-            {/* Debug logging */}
-            {console.log('Button condition check:', { 
-              isLastContent: isLastContent(), 
-              allContentRead, 
-              hasQuiz: hasQuiz(),
-              activeTab,
-              totalContents: module?.contents?.length 
-            })}
-
             {/* Show quiz button if on last content, all content is read, and module has a quiz */}
             {isLastContent() && allContentRead && hasQuiz() ? (
               <Button onClick={handleStartQuiz}>
-                Commencer le quiz
+                Passer le test
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            ) : isLastContent() && allContentRead && !hasQuiz() ? (
+              <Button onClick={() => navigate(`/formation/${formationId}`)}>
+                Retour à la formation
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
@@ -291,7 +269,7 @@ const ModuleContent = () => {
                 onClick={handleNextContent}
                 disabled={!module.contents || Number.parseInt(activeTab) === (module.contents.length - 1)}
               >
-                Suivant
+                Continuer
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             )}
@@ -303,4 +281,3 @@ const ModuleContent = () => {
 }
 
 export default ModuleContent
-

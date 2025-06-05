@@ -7,7 +7,15 @@ import Layout from "./Layout"
 import LoadingScreen from "./LoadingScreen"
 
 const ProtectedRoute = () => {
-  const { currentUser, loading } = useAuth()
+  // Add a try-catch to handle potential errors with useAuth()
+  let authData = { currentUser: null, loading: true };
+  try {
+    authData = useAuth() || { currentUser: null, loading: true };
+  } catch (error) {
+    console.error("Error using AuthContext:", error);
+  }
+  
+  const { currentUser, loading } = authData;
   const location = useLocation()
 
   if (loading) {

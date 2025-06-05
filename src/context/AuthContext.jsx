@@ -4,9 +4,21 @@ import { createContext, useState, useEffect, useContext } from "react"
 import { jwtDecode } from "jwt-decode"
 import { authService } from "../services/authService"
 
-const AuthContext = createContext()
+const AuthContext = createContext({
+  currentUser: null,
+  loading: false,
+  error: null,
+  login: () => {},
+  logout: () => {}
+})
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
@@ -22,19 +34,15 @@ export const AuthProvider = ({ children }) => {
 
         if (decodedToken.exp < currentTime) {
           // Token expired
-          console.log("Token expired, logging out")
           logout()
         } else {
           // Valid token, fetch user data
-          console.log("Valid token found, fetching user data")
           fetchUserData(token)
         }
       } catch (error) {
-        console.error("Invalid token:", error)
         logout()
       }
     } else {
-      console.log("No token found")
       setLoading(false)
     }
   }, [])
@@ -45,7 +53,6 @@ export const AuthProvider = ({ children }) => {
       const storedUserData = localStorage.getItem("userData")
       if (storedUserData) {
         const userData = JSON.parse(storedUserData)
-        console.log("📱 Loading user from localStorage:", userData)
         
         // Ensure the user data has the required ID field
         if (userData && userData.id) {
@@ -53,7 +60,6 @@ export const AuthProvider = ({ children }) => {
           setLoading(false)
           return
         } else {
-          console.warn("⚠️ Stored user data missing ID, fetching from API")
           // Clear invalid stored data
           localStorage.removeItem("userData")
         }
@@ -61,7 +67,6 @@ export const AuthProvider = ({ children }) => {
 
       // Sinon, essayons de récupérer les données utilisateur depuis l'API
       const userData = await authService.getCurrentUser(token)
-      console.log("📱 Fetched user from API:", userData)
       
       // Ensure the API response has the required ID field
       if (userData && userData.id) {
@@ -69,7 +74,6 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("userData", JSON.stringify(userData))
         setCurrentUser(userData)
       } else {
-        console.error("❌ API response missing user ID:", userData)
         setError("Invalid user data received from server")
         logout()
         return
@@ -77,7 +81,6 @@ export const AuthProvider = ({ children }) => {
       
       setLoading(false)
     } catch (error) {
-      console.error("Error fetching user data:", error)
       setError("Failed to fetch user data")
       setLoading(false)
     }
@@ -88,21 +91,16 @@ export const AuthProvider = ({ children }) => {
       setLoading(true)
       setError(null)
 
-      console.log("Attempting login with:", { email })
       const response = await authService.login(email, password)
-      console.log("Login response:", response)
 
       // Extraire le token et les données utilisateur de la réponse
       const { token, userDTO } = response
 
       // Vérifier que nous avons bien reçu un ID utilisateur
       if (!userDTO || !userDTO.id) {
-        console.error("❌ Login response missing user ID:", response)
         setError("Invalid response from server - missing user identification")
         return false
       }
-
-      console.log("✅ User ID received:", userDTO.id, "Type:", typeof userDTO.id)
 
       // Stocker le token dans localStorage
       localStorage.setItem("token", token)
@@ -120,7 +118,6 @@ export const AuthProvider = ({ children }) => {
         ...userDTO
       }
       
-      console.log("💾 Storing user data:", userDataToStore)
       localStorage.setItem("userData", JSON.stringify(userDataToStore))
 
       // Mettre à jour l'état avec les données utilisateur
@@ -128,7 +125,6 @@ export const AuthProvider = ({ children }) => {
 
       return true
     } catch (error) {
-      console.error("Login error:", error)
       setError(error.response?.data?.message || "Login failed. Please check your credentials.")
       return false
     } finally {
@@ -137,7 +133,6 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = () => {
-    console.log("🚪 Logging out user")
     localStorage.removeItem("token")
     localStorage.removeItem("userData")
     setCurrentUser(null)

@@ -144,13 +144,12 @@ const CollaborateurForm = ({
           <Select 
             value={formData.poste} 
             onValueChange={(value) => handleSelectChange("poste", value)}
-          >
-            <SelectTrigger className="bg-white">
+          >            <SelectTrigger className="bg-background">
               <SelectValue placeholder="Sélectionner un poste" />
             </SelectTrigger>
-            <SelectContent className="bg-white">
+            <SelectContent className="bg-background">
               {postes.map((poste) => (
-                <SelectItem key={poste} value={poste} className="cursor-pointer hover:bg-gray-100">
+                <SelectItem key={poste} value={poste} className="cursor-pointer hover:bg-accent hover:text-accent-foreground">
                   {poste}
                 </SelectItem>
               ))}

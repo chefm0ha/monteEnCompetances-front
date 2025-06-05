@@ -9,12 +9,6 @@ import { formationService, markSupportAsSeen, isSupportSeen } from "../../servic
 import { STORAGE_URL } from "../../config"
 
 const ContentViewer = ({ formationId, moduleId, content, onContentRead, collaborateurId }) => {
-  console.log('🎬 ContentViewer rendered with content:', {
-    id: content?.id,
-    title: content?.title,
-    type: content?.type
-  })
-  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [isRead, setIsRead] = useState(false)
@@ -31,7 +25,7 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead, collabor
         setHasBeenSeen(seen)
         setIsRead(seen)
       } catch (error) {
-        console.error("Error checking support seen status:", error)
+        // Error handled silently
       }
     }
 
@@ -50,7 +44,6 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead, collabor
         onContentRead(content.id)
       }
     } catch (error) {
-      console.error("Error marking support as seen:", error)
       setError("Impossible de marquer ce support comme lu. Veuillez réessayer.")
     } finally {
       setLoading(false)
@@ -147,7 +140,7 @@ const ContentViewer = ({ formationId, moduleId, content, onContentRead, collabor
             onClick={handleMarkAsRead} 
             disabled={loading || hasBeenSeen}
             variant={hasBeenSeen ? "secondary" : "default"}
-            className={hasBeenSeen ? "bg-green-100 text-green-800 hover:bg-green-200" : ""}
+            className={hasBeenSeen ? "bg-blue-100 text-blue-800 hover:bg-blue-200" : ""}
           >
             {loading ? (
               "Marquage en cours..."

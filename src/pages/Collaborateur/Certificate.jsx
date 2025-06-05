@@ -5,8 +5,10 @@ import { useState, useEffect, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { formationService } from "../../services/formationService"
 import { useAuth } from "../../context/AuthContext"
+import { useTheme } from "../../components/shared/theme-provider"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent } from "../../components/ui/card"
+import { getThemeLogo } from "../../lib/utils"
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "../../components/ui/breadcrumb"
 import { Loader2, AlertCircle, ArrowLeft, Download, Printer, RefreshCw, CheckCircle } from "lucide-react"
@@ -17,6 +19,7 @@ const Certificate = () => {
   const { formationId } = useParams()
   const navigate = useNavigate()
   const { currentUser } = useAuth()
+  const { theme } = useTheme()
   const [formation, setFormation] = useState(null)
   const [userProgress, setUserProgress] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -310,7 +313,7 @@ const Certificate = () => {
             >
               <div className="mb-8">
                 <img
-                  src={APP_SETTINGS.logoUrl || "/placeholder.svg"}
+                  src={getThemeLogo(theme)}
                   alt={APP_SETTINGS.appName}
                   className="h-16 mx-auto"
                 />

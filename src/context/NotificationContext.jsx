@@ -32,17 +32,7 @@ export const NotificationProvider = ({ children }) => {
       const count = isAdmin
         ? await notificationService.getUnseenAdminNotificationsCount(currentUser.id)        : await notificationService.getUnseenUserNotificationsCount(currentUser.id)
       
-      setUnseenCount(count)
-    } catch (error) {
-      console.error("❌ Error fetching unseen count:", error)
-      console.error("❌ Error details:", {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.response?.data
-      })
+      setUnseenCount(count)    } catch (error) {
       // Don't reset count on error, keep previous value
     }
   }, [currentUser?.id, isAdmin])
@@ -56,17 +46,7 @@ export const NotificationProvider = ({ children }) => {
       const data = isAdmin
         ? await notificationService.getLatestAdminNotifications(currentUser.id)        : await notificationService.getLatestUserNotifications(currentUser.id)
       
-      setNotifications(data)
-    } catch (error) {
-      console.error("❌ Error fetching latest notifications:", error)
-      console.error("❌ Error details:", {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.response?.data
-      })
+      setNotifications(data)    } catch (error) {
       // Don't clear notifications on error, keep previous ones
     } finally {
       setLoading(false)

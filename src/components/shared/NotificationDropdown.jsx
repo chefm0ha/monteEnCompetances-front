@@ -4,6 +4,8 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useNotifications } from "../../context/NotificationContext"
+import { useAuth } from "../../context/AuthContext"
+import { useTheme } from "./theme-provider"
 import { Button } from "../ui/button"
 import {
   DropdownMenu,
@@ -19,6 +21,8 @@ import { cn } from "../../lib/utils"
 
 const NotificationDropdown = () => {
   const navigate = useNavigate()
+  const { currentUser } = useAuth()
+  const { theme } = useTheme()
   const {
     notifications,
     unseenCount,
@@ -55,14 +59,14 @@ const NotificationDropdown = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'SUCCESS':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CheckCircle className={cn("h-4 w-4", theme === "dark" ? "text-green-400" : "text-green-500")} />
       case 'ERROR':
-        return <AlertCircle className="h-4 w-4 text-red-500" />
+        return <AlertCircle className={cn("h-4 w-4", theme === "dark" ? "text-red-400" : "text-red-500")} />
       case 'WARNING':
-        return <AlertCircle className="h-4 w-4 text-yellow-500" />
+        return <AlertCircle className={cn("h-4 w-4", theme === "dark" ? "text-yellow-400" : "text-yellow-500")} />
       case 'INFO':
       default:
-        return <Info className="h-4 w-4 text-blue-500" />
+        return <Info className={cn("h-4 w-4", theme === "dark" ? "text-blue-400" : "text-blue-500")} />
     }
   }
 
@@ -87,10 +91,10 @@ const NotificationDropdown = () => {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="relative inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3">
+        <button className="relative inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-muted hover:text-accent-foreground h-9 px-3">
           <Bell className="h-5 w-5" />
           {unseenCount > 0 && (
-            <div className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold min-w-[16px] border-2 border-white">
+            <div className="absolute -top-1 -right-1 h-5 w-5 bg-destructive rounded-full flex items-center justify-center text-destructive-foreground text-[10px] font-bold min-w-[16px] border-2 border-background">
               {unseenCount > 99 ? '99+' : unseenCount}
             </div>
           )}
@@ -98,10 +102,16 @@ const NotificationDropdown = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-80 bg-white border shadow-lg rounded-md p-0"
+        className={cn(
+          "w-80 border shadow-lg rounded-md p-0",
+          theme === "dark" ? "bg-[#1a1f3c]" : "bg-white"
+        )}
         sideOffset={8}
       >
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className={cn(
+          "flex items-center justify-between p-4 border-b",
+          theme === "dark" ? "bg-[#1a1f3c]" : "bg-white"
+        )}>
           <DropdownMenuLabel className="text-base font-semibold p-0">
             Notifications
           </DropdownMenuLabel>
@@ -127,47 +137,64 @@ const NotificationDropdown = () => {
           </div>
         </div>
 
-        <ScrollArea className="h-96">
+        <ScrollArea className={cn(
+          "h-96",
+          theme === "dark" ? "bg-[#1a1f3c]" : "bg-white"
+        )}>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
+            <div className={cn(
+              "flex items-center justify-center py-8",
+              theme === "dark" ? "bg-[#1a1f3c]" : "bg-white"
+            )}>
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Bell className="h-8 w-8 text-gray-400 mb-2" />
-              <p className="text-sm text-gray-500">Aucune notification</p>
+            <div className={cn(
+              "flex flex-col items-center justify-center py-8 text-center",
+              theme === "dark" ? "bg-[#1a1f3c]" : "bg-white"
+            )}>
+              <Bell className="h-8 w-8 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">Aucune notification</p>
             </div>
           ) : (
-            <div className="py-2">
+            <div className={cn(
+              "py-2",
+              theme === "dark" ? "bg-[#1a1f3c]" : "bg-white"
+            )}>
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
                   className={cn(
-                    "flex items-start gap-3 p-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0",
-                    !notification.seen && "bg-blue-50"
+                    "flex items-start gap-3 p-3 hover:bg-muted cursor-pointer transition-colors border-b border-border last:border-b-0 relative",
+                    !notification.seen && (theme === "dark" ? "bg-primary/15" : "bg-primary/10")
                   )}
-                >                  <div className="flex-shrink-0 mt-0.5">
+                >
+                  <div className="flex-shrink-0 mt-0.5">
                     {getNotificationIcon(notification.type || 'INFO')}
-                  </div><div className="flex-1 min-w-0">
+                  </div>
+                  <div className="flex-1 min-w-0">
                     <p className={cn(
                       "text-sm leading-5",
-                      !notification.seen ? "font-medium text-gray-900" : "text-gray-700"
+                      !notification.seen ? "font-medium" : "text-muted-foreground"
                     )}>
                       {notification.titre}
                     </p>
                     {notification.contenu && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                         {notification.contenu}
                       </p>
                     )}
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-muted-foreground/70 mt-2">
                       {formatNotificationTime(notification.createdAt)}
                     </p>
                   </div>
                   {!notification.seen && (
-                    <div className="flex-shrink-0">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                    <div className="absolute right-3 top-3">
+                      <div className={cn(
+                        "w-2.5 h-2.5 rounded-full",
+                        theme === "dark" ? "bg-blue-500" : "bg-blue-600"
+                      )}></div>
                     </div>
                   )}
                 </div>
@@ -175,16 +202,22 @@ const NotificationDropdown = () => {
             </div>
           )}
         </ScrollArea>
-
-        <DropdownMenuSeparator />
-        <div className="p-2">
+        <DropdownMenuSeparator />        <div className={cn(
+          "p-2",
+          theme === "dark" ? "bg-[#1a1f3c]" : "bg-white"
+        )}>
           <Button
             variant="ghost"
             size="sm"
             className="w-full justify-center text-xs"
             onClick={() => {
               setOpen(false)
-              navigate('/admin/notifications')
+              // Navigate to different notification pages based on user role
+              if (currentUser?.role === 'ADMIN') {
+                navigate('/admin/notifications')
+              } else {
+                navigate('/notifications')
+              }
             }}
           >
             Voir toutes les notifications

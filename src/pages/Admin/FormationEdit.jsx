@@ -562,14 +562,8 @@ const FormationEdit = () => {
                         <div className="flex-1">
                           <h3 className="text-lg font-medium">{module.titre}</h3>
                           <p className="text-gray-500 text-sm mt-1">{module.description}</p>
-                          
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              <FileText className="h-3 w-3 mr-1" />
-                              {module.supports?.length || 0} contenus
-                            </span>
-                            {module.quizs && module.quizs.length > 0 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <div className="flex flex-wrap gap-2 mt-2">
+                            {module.quizs && module.quizs.length > 0 && (                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Quiz
                               </span>

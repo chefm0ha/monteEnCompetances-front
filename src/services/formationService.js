@@ -361,17 +361,13 @@ export const formationService = {
    */
   getModuleById: async (formationId, moduleId) => {
     try {
-      console.log(`🔍 Fetching module ${moduleId} details...`);
       const response = await API.get(`/api/collaborateur/formations/modules/${moduleId}`);
       const module = response.data;
-      console.log(`✅ Module ${moduleId} basic info:`, module);
       
       // Get supports for this module
       let supports = [];
       try {
-        console.log(`🔍 Fetching supports for module ${moduleId}...`);
         const supportsResponse = await API.get(`/api/collaborateur/formations/modules/${moduleId}/supports`);
-        console.log(`✅ Supports response for module ${moduleId}:`, supportsResponse.data);
         
         supports = supportsResponse.data.map(support => ({
           id: support.id,
@@ -383,10 +379,8 @@ export const formationService = {
           downloadUrl: support.downloadUrl || (support.type === 'PDF' ? support.lien : null)
         }));
         
-        console.log(`✅ Mapped supports for module ${moduleId}:`, supports);
       } catch (supportsError) {
-        console.error(`❌ Error fetching supports for module ${moduleId}:`, supportsError);
-        console.error('Response details:', supportsError.response);
+        // Error silently handled
       }
       
       return {
@@ -398,8 +392,6 @@ export const formationService = {
         contents: supports
       };
     } catch (error) {
-      console.error(`❌ Error fetching module ${moduleId}:`, error);
-      console.error('Response details:', error.response);
       throw error;
     }
   },
@@ -434,7 +426,6 @@ export const formationService = {
         })) || []
       };
     } catch (error) {
-      console.error(`Erreur lors de la récupération du quiz du module ${moduleId}:`, error);
       throw error;
     }
   },

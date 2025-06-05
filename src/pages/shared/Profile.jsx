@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { useAuth } from "../../context/AuthContext"
+import { useTheme } from "../../components/shared/theme-provider"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
@@ -17,11 +18,13 @@ import {
   Save, 
   Loader2, 
   AlertCircle,
-  Eye,
-  EyeOff,
+  Eye,  EyeOff,
   Shield,
   Calendar,
-  MapPin
+  MapPin,
+  Monitor,
+  Sun,
+  Moon
 } from "lucide-react"
 import Swal from 'sweetalert2'
 import { collaborateurService } from "../../services/collaborateurService"
@@ -29,6 +32,7 @@ import { APP_SETTINGS } from "../../config"
 
 const Profile = () => {
   const { currentUser, logout } = useAuth()
+  const { theme, setTheme } = useTheme()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -95,15 +99,20 @@ const Profile = () => {
 
     try {
       setSaving(true)
-      
-      // Update profile via collaborateur service
-      await collaborateurService.updateCollaborateur(currentUser.id, {
+        // Update profile via collaborateur service
+      const updateData = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         email: profileData.email,
-        poste: profileData.poste,
         role: profileData.role
-      })
+      }
+      
+      // Only include poste if user is admin
+      if (currentUser?.role === "ADMIN") {
+        updateData.poste = profileData.poste
+      }
+      
+      await collaborateurService.updateCollaborateur(currentUser.id, updateData)
 
       Swal.fire({
         icon: 'success',
@@ -206,10 +215,9 @@ const Profile = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
+    <div className="space-y-6 max-w-4xl mx-auto">      <div>
         <h1 className="text-3xl font-bold tracking-tight">Mon Profil</h1>
-        <p className="text-gray-500">Gérez vos informations personnelles et vos préférences</p>
+        <p className="text-muted-foreground">Gérez vos informations personnelles et vos préférences</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -235,22 +243,23 @@ const Profile = () => {
                     {currentUser?.firstName?.charAt(0)}{currentUser?.lastName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium">
+                <div className="flex-1">                  <h3 className="text-lg font-medium">
                     {currentUser?.firstName} {currentUser?.lastName}
                   </h3>
-                  <p className="text-gray-500">{currentUser?.email}</p>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                  <p className="text-muted-foreground">{currentUser?.email}</p>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                     {currentUser?.role !== "ADMIN" && (
                       <div className="flex items-center gap-1">
                         <Briefcase className="h-4 w-4" />
-                        {currentUser?.poste || "Non renseigné"}
+                        {currentUser?.role || "Non renseigné"}
                       </div>
                     )}
-                    <div className="flex items-center gap-1">
-                      <Shield className="h-4 w-4" />
-                      {getRoleDisplayName(currentUser?.role)}
-                    </div>
+                    {currentUser?.role !== "COLLABORATEUR" && (
+                      <div className="flex items-center gap-1">
+                        <Shield className="h-4 w-4" />
+                        {getRoleDisplayName(currentUser?.role)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -295,21 +304,7 @@ const Profile = () => {
                     value={profileData.email}
                     onChange={handleProfileChange}
                     placeholder="votre.email@exemple.com"
-                  />
-                </div>
-
-                {currentUser?.role !== "ADMIN" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="poste">Poste</Label>
-                    <Input
-                      id="poste"
-                      name="poste"
-                      value={profileData.poste}
-                      onChange={handleProfileChange}
-                      placeholder="Votre poste"
-                    />
-                  </div>
-                )}
+                  />                </div>
 
                 <div className="flex justify-end">
                   <Button type="submit" disabled={saving}>
@@ -399,8 +394,7 @@ const Profile = () => {
                         <Eye className="h-4 w-4" />
                       )}
                     </Button>
-                  </div>
-                  <p className="text-xs text-gray-500">
+                  </div>                  <p className="text-xs text-muted-foreground">
                     Le mot de passe doit contenir au moins 6 caractères
                   </p>
                 </div>
@@ -459,9 +453,8 @@ const Profile = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="rounded-lg border p-4">
-                  <h4 className="font-medium">Informations du compte</h4>
-                  <div className="mt-2 space-y-2 text-sm text-gray-600">
+                <div className="rounded-lg border p-4">                  <h4 className="font-medium">Informations du compte</h4>
+                  <div className="mt-2 space-y-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
                       <span>Membre depuis: {formatDate(currentUser?.createdAt)}</span>
@@ -471,18 +464,45 @@ const Profile = () => {
                       <span>Email vérifié: {currentUser?.emailVerified ? "Oui" : "Non"}</span>
                     </div>
                   </div>
-                </div>
-
-                <div className="rounded-lg border p-4">
-                  <h4 className="font-medium">Thème et affichage</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Les préférences de thème seront bientôt disponibles.
-                  </p>
+                </div>                <div className="rounded-lg border p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">Thème et affichage</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Choisissez le thème de l'interface
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        variant={theme === "light" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setTheme("light")}
+                        className="flex items-center gap-2"
+                      >
+                        <Sun className="h-4 w-4" />
+                        Clair
+                      </Button>
+                      <Button
+                        variant={theme === "dark" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setTheme("dark")}
+                        className="flex items-center gap-2"
+                      >
+                        <Moon className="h-4 w-4" />
+                        Sombre
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Thème actuel: {theme === "light" ? "Clair" : "Sombre"}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="rounded-lg border p-4">
                   <h4 className="font-medium">Notifications</h4>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     Gérez vos préférences de notification (bientôt disponible).
                   </p>
                 </div>

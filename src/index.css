@@ -2,7 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* SweetAlert2 custom styles */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* SweetAlert2 custom styles for dark theme */
 .swal2-styled {
   padding: 0.625em 1.1em;
   transition: box-shadow .1s;
@@ -15,35 +72,125 @@
 }
 
 .swal2-confirm {
-  background-color: #3085d6 !important;
-  color: #fff !important;
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
   border-radius: 0.375rem !important;
 }
 
 .swal2-cancel {
-  background-color: #d33 !important;
-  color: #fff !important;
+  background-color: hsl(var(--destructive)) !important;
+  color: hsl(var(--destructive-foreground)) !important;
   border-radius: 0.375rem !important;
 }
 
 .swal2-confirm:hover {
-  background-color: #2778c4 !important;
+  opacity: 0.9 !important;
 }
 
 .swal2-cancel:hover {
-  background-color: #bf2e1f !important;
+  opacity: 0.9 !important;
 }
 
-/* Select styles */
+/* Dark theme for SweetAlert2 */
+.dark .swal2-popup {
+  background-color: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+}
+
+.dark .swal2-title {
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .swal2-content {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Select styles for dark theme */
 [role="option"] {
   cursor: pointer;
 }
 
 [role="option"]:hover {
-  background-color: #f3f4f6 !important;
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
 }
 
 [role="option"][data-highlighted] {
-  background-color: #e5e7eb !important;
-  color: black !important;
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+/* Force destructive button styles */
+.btn-destructive, 
+button[data-variant="destructive"],
+.destructive {
+  background-color: #ef4444 !important;
+  color: white !important;
+  border-color: #ef4444 !important;
+}
+
+.btn-destructive:hover,
+button[data-variant="destructive"]:hover,
+.destructive:hover {
+  background-color: #dc2626 !important;
+  color: white !important;
+}
+
+/* Tailwind destructive button override */
+.bg-destructive {
+  background-color: #ef4444 !important;
+  color: white !important;
+}
+
+.hover\:bg-destructive\/90:hover {
+  background-color: #dc2626 !important;
+}
+
+/* Dark theme destructive styles */
+.dark .btn-destructive,
+.dark button[data-variant="destructive"],
+.dark .destructive,
+.dark .bg-destructive {
+  background-color: #f87171 !important;
+  color: #1f2937 !important;
+}
+
+.dark .btn-destructive:hover,
+.dark button[data-variant="destructive"]:hover,
+.dark .destructive:hover {
+  background-color: #ef4444 !important;
+  color: #1f2937 !important;
+}
+
+/* Ensure proper button text visibility */
+button[data-variant="default"]:not([data-variant="outline"]):not([data-variant="ghost"]) {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+button[data-variant="default"]:hover:not([data-variant="outline"]):not([data-variant="ghost"]) {
+  background-color: hsl(var(--primary) / 0.9) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Fix for primary buttons to ensure text is visible */
+.bg-primary {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.hover\:bg-primary\/90:hover {
+  background-color: hsl(var(--primary) / 0.9) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Ensure secondary buttons have proper contrast */
+button[data-variant="secondary"] {
+  background-color: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+}
+
+button[data-variant="secondary"]:hover {
+  background-color: hsl(var(--secondary) / 0.8) !important;
+  color: hsl(var(--secondary-foreground)) !important;
 }

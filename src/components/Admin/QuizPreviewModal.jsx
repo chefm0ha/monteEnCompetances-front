@@ -142,9 +142,8 @@ const QuizPreview = ({ quiz, onClose }) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col items-center justify-center space-y-2 py-4">
-            {result.passed ? (
-              <CheckCircle className="h-12 w-12 text-green-500" />
+          <div className="flex flex-col items-center justify-center space-y-2 py-4">            {result.passed ? (
+              <CheckCircle className="h-12 w-12 text-blue-500" />
             ) : (
               <XCircle className="h-12 w-12 text-red-500" />
             )}
@@ -167,9 +166,8 @@ const QuizPreview = ({ quiz, onClose }) => {
                 className="border rounded-md p-4 space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium">Question {index + 1}</h4>
-                  {detail.isCorrect ? (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <h4 className="font-medium">Question {index + 1}</h4>                  {detail.isCorrect ? (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Correct
                     </span>
@@ -185,9 +183,8 @@ const QuizPreview = ({ quiz, onClose }) => {
                   <p>
                     <span className="font-medium">Votre réponse:</span>{" "}
                     {detail.selectedChoiceText}
-                  </p>
-                  {!detail.isCorrect && (
-                    <p className="text-green-600">
+                  </p>                  {!detail.isCorrect && (
+                    <p className="text-blue-600">
                       <span className="font-medium">Réponse correcte:</span>{" "}
                       {detail.correctChoiceText}
                     </p>

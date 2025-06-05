@@ -4,8 +4,10 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
+import { useTheme } from "../../components/shared/theme-provider"
 import { Button } from "../../components/ui/button"
 import { Input } from "../../components/ui/input"
+import { getThemeLogo } from "../../lib/utils"
 import { Label } from "../../components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
 import { Alert, AlertDescription } from "../../components/ui/alert"
@@ -14,6 +16,7 @@ import { APP_SETTINGS } from "../../config"
 import Swal from 'sweetalert2'
 
 const Login = () => {
+  const { theme } = useTheme()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [formError, setFormError] = useState("")
@@ -44,16 +47,16 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img
-            src={APP_SETTINGS.logoUrl || "/placeholder.svg"}
+            src={getThemeLogo(theme)}
             alt={APP_SETTINGS.appName}
             className="h-12 mx-auto mb-4"
           />
-          <h1 className="text-2xl font-bold">{APP_SETTINGS.appName}</h1>
-          <p className="text-gray-600">Plateforme de montée en compétences</p>
+          <h1 className="text-2xl font-bold text-foreground">{APP_SETTINGS.appName}</h1>
+          <p className="text-muted-foreground">Plateforme de montée en compétences</p>
         </div>
 
         <Card>
@@ -125,7 +128,7 @@ const Login = () => {
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <p className="text-sm text-gray-600">Besoin d'aide ? Contactez {APP_SETTINGS.supportEmail}</p>
+            <p className="text-sm text-muted-foreground">Besoin d'aide ? Contactez {APP_SETTINGS.supportEmail}</p>
           </CardFooter>
         </Card>
       </div>

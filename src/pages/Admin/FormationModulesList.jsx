@@ -296,7 +296,7 @@ const FormationModulesList = () => {
                                       </Badge>
                                     )}
                                     {stats.hasQuiz && (
-                                      <Badge className="bg-green-100 text-green-800">
+                                      <Badge className="bg-blue-100 text-blue-800">
                                         <CheckCircle className="h-3 w-3 mr-1" />
                                         Quiz
                                       </Badge>

@@ -70,10 +70,9 @@ const MesFormations = () => {
       setLoading(false)
     }
   }
-
   const getStatusBadge = (formation) => {
     if (formation.progress === 100) {
-      return <Badge className="bg-green-500">Terminée</Badge>
+      return <Badge className="bg-blue-500">Terminée</Badge>
     } else if (formation.progress > 0) {
       return <Badge className="bg-blue-500">En cours</Badge>
     } else {
@@ -83,7 +82,7 @@ const MesFormations = () => {
 
   const getStatusIcon = (formation) => {
     if (formation.progress === 100) {
-      return <CheckCircle className="h-5 w-5 text-green-500" />
+      return <CheckCircle className="h-5 w-5 text-blue-500" />
     } else if (formation.progress > 0) {
       return <Clock className="h-5 w-5 text-blue-500" />
     } else {
@@ -340,11 +339,10 @@ const MesFormations = () => {
                             {formation.progress === 0 ? "Commencer" : "Continuer"}
                             <ArrowRight className="ml-1 h-4 w-4" />
                           </Button>
-                          
-                          {formation.progress === 100 && (
+                            {formation.progress === 100 && (
                             <Button
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-blue-600 hover:bg-blue-700"
                               onClick={(e) => handleDownloadCertificate(formation, e)}
                             >
                               <Award className="mr-1 h-4 w-4" />

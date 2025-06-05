@@ -1,3 +1,4 @@
+// src/components/Collaborateur/ModuleAccordion.jsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -14,7 +15,7 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
   const [expandedModule, setExpandedModule] = useState(null)
   const [moduleUnlockStatus, setModuleUnlockStatus] = useState({})
   const [moduleProgress, setModuleProgress] = useState({})
-  const [formationProgress, setFormationProgress] = useState(externalFormationProgress || null) // Use external prop if provided
+  const [formationProgress, setFormationProgress] = useState(externalFormationProgress || null)
   const [loading, setLoading] = useState(true)
 
   // Load module unlock status and progress
@@ -27,7 +28,7 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
         // Get formation-wide progress only if not provided externally
         if (!externalFormationProgress) {
           const progressData = await getFormationProgressWithModules(formationId, collaborateurId)
-          setFormationProgress(progressData) // Set as state
+          setFormationProgress(progressData)
         } else {
           setFormationProgress(externalFormationProgress)
         }
@@ -69,7 +70,6 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
   // Find the first incomplete module to expand by default
   useEffect(() => {
     if (modules && modules.length > 0 && !loading && formationProgress) {
-      // Sort modules by order and find first unlocked incomplete module
       const sortedModules = [...modules].sort((a, b) => a.ordre - b.ordre)
       const firstIncompleteModule = sortedModules.find((module) => {
         const isUnlocked = isModuleUnlockedLocal(module.id)
@@ -80,51 +80,45 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
       if (firstIncompleteModule) {
         setExpandedModule(firstIncompleteModule.id.toString())
       } else if (modules.length > 0) {
-        // If all modules are completed or none are unlocked, expand the first module
         setExpandedModule(sortedModules[0].id.toString())
       }
     }
   }, [modules, loading, formationProgress])
 
   const isModuleUnlockedLocal = (moduleId) => {
-    // First module is always unlocked
     const sortedModules = [...modules].sort((a, b) => a.ordre - b.ordre)
     const currentModuleIndex = sortedModules.findIndex(m => m.id === moduleId)
     
     if (currentModuleIndex === 0) {
-      return true // First module is always unlocked
+      return true
     }
     
-    // Check if all previous modules are completed (quiz passed)
     for (let i = 0; i < currentModuleIndex; i++) {
       const previousModule = sortedModules[i]
       const moduleProgressInfo = formationProgress?.modules?.find(m => m.moduleId === previousModule.id)
       const isCompleted = moduleProgressInfo?.completed || false
       
       if (!isCompleted) {
-        return false // Previous module not completed
+        return false
       }
     }
     
-    return true // All previous modules are completed
+    return true
   }
 
   const isModuleCompleted = (moduleId) => {
-    // Check using formation progress data first (more accurate)
     if (formationProgress?.modules) {
       const moduleProgressInfo = formationProgress.modules.find(m => m.moduleId === moduleId)
       return moduleProgressInfo?.completed || false
     }
-    // Fallback to userProgress if formation progress not available
     return userProgress?.completedModules?.includes(moduleId) || false
   }
 
   const isSupportSeen = (supportId) => {
-    // Check across all module progress data
     for (const moduleId in moduleProgress) {
       const supports = moduleProgress[moduleId]
       const support = supports.find(s => s.supportId === supportId)
-      if (support && support.seen) {  // Changed from isSeen to seen based on API response
+      if (support && support.seen) {
         return true
       }
     }
@@ -132,7 +126,6 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
   }
 
   const isQuizPassed = (moduleId) => {
-    // Check if module has been completed which means quiz was passed
     return isModuleCompleted(moduleId)
   }
 
@@ -161,8 +154,18 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
     }
   }
 
+  // FIXED: Pass content index to navigate to specific content
   const handleContentClick = async (moduleId, contentId) => {
-    navigate(`/formation/${formationId}/module/${moduleId}`)
+    // Find the content index in the module
+    const module = modules.find(m => m.id === moduleId)
+    if (module && module.contents) {
+      const contentIndex = module.contents.findIndex(c => c.id === contentId)
+      // Navigate with content index as URL parameter
+      navigate(`/formation/${formationId}/module/${moduleId}?content=${contentIndex}`)
+    } else {
+      // Fallback to original navigation
+      navigate(`/formation/${formationId}/module/${moduleId}`)
+    }
   }
 
   const handleQuizClick = (moduleId) => {
@@ -170,21 +173,18 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
   }
 
   const handleContentRead = async (contentId) => {
-    // Refresh module progress for the specific module
     try {
       const moduleId = modules.find(m => 
         m.contents && m.contents.some(c => c.id === contentId)
       )?.id
       
       if (moduleId) {
-        // Refresh supports progress for this module
         const updatedSupports = await getModuleSupportsProgress(moduleId, collaborateurId)
         setModuleProgress(prev => ({
           ...prev,
           [moduleId]: updatedSupports
         }))
 
-        // Also refresh formation progress to update completion status
         const progressData = await getFormationProgressWithModules(formationId, collaborateurId)
         setFormationProgress(progressData)
       }
@@ -194,10 +194,8 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
   }
 
   const isQuizUnlocked = (moduleId) => {
-    // Quiz is unlocked if all supports in the module are seen
     const module = modules.find((m) => m.id === moduleId)
     if (!module || !module.contents || module.contents.length === 0) {
-      // If module has no content, quiz should be unlocked by default
       return true
     }
 
@@ -222,19 +220,19 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
         
         return (
         <AccordionItem key={module.id} value={module.id.toString()}>
-          <AccordionTrigger className="px-4 py-2 hover:bg-gray-50 rounded-md">
+          <AccordionTrigger className="px-4 py-2 hover:bg-muted/50 rounded-md">
             <div className="flex items-center justify-between w-full pr-4">
               <div className="flex items-center gap-3">
                 {isCompleted ? (
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  <CheckCircle className="h-5 w-5 text-blue-500 mr-2" />
                 ) : !isUnlocked ? (
-                  <Lock className="h-5 w-5 text-gray-400 mr-2" />
+                  <Lock className="h-5 w-5 text-muted-foreground mr-2" />
                 ) : null}
                 <div className="flex flex-col items-start">
                   <span className="font-medium">{module.title}</span>
                   {isUnlocked && !isCompleted && (
                     <div className="flex flex-col gap-1 mt-1">
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <span>
                           {contentProgress.seen}/{contentProgress.total} contenus consultés
                         </span>
@@ -256,7 +254,7 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
               </div>
               <div className="flex items-center gap-2">
                 {isCompleted && (
-                  <Badge className="bg-green-500 text-white">
+                  <Badge className="bg-blue-500 text-white">
                     <CheckCircle className="h-3 w-3 mr-1" />
                     Terminé
                   </Badge>
@@ -271,7 +269,7 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
           </AccordionTrigger>
           <AccordionContent className="px-4 py-2">
             {!isModuleUnlockedLocal(module.id) ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-muted-foreground">
                 <Lock className="h-8 w-8 mx-auto mb-2" />
                 <p className="font-medium">Module verrouillé</p>
                 <p className="text-sm mt-1">
@@ -289,18 +287,18 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
                         <Button
                           key={content.id}
                           variant="ghost"
-                          className={`w-full justify-start relative ${isContentSeen ? 'bg-green-50 border-green-200 border' : 'hover:bg-gray-50'}`}
+                          className={`w-full justify-start relative ${isContentSeen ? 'bg-blue-50 border-blue-200 border' : 'hover:bg-muted/50'}`}
                           onClick={() => handleContentClick(module.id, content.id)}
                         >
                           <div className="flex items-center w-full">
                             {getContentIcon(content.type)}
-                            <span className={`flex-1 text-left ${isContentSeen ? 'text-green-800' : ''}`}>
+                            <span className={`flex-1 text-left ${isContentSeen ? 'text-blue-800' : ''}`}>
                               {content.title}
                             </span>
                             {isContentSeen && (
                               <div className="flex items-center gap-1 ml-2">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                <span className="text-xs text-green-600 font-medium">Consulté</span>
+                                <CheckCircle className="h-4 w-4 text-blue-600" />
+                                <span className="text-xs text-blue-600 font-medium">Consulté</span>
                               </div>
                             )}
                           </div>
@@ -308,7 +306,7 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
                       )
                     })
                   ) : (
-                    <div className="text-center p-4 text-gray-500 text-sm">
+                    <div className="text-center p-4 text-muted-foreground text-sm">
                       Ce module n'a pas encore de contenu
                     </div>
                   )}
@@ -319,7 +317,7 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
                   <div className="relative">
                     <Button
                       variant="outline"
-                      className={`w-full ${isQuizPassed(module.id) ? 'bg-green-50 border-green-200 text-green-800' : ''}`}
+                      className={`w-full ${isQuizPassed(module.id) ? 'bg-blue-50 border-blue-200 text-blue-800' : ''}`}
                       disabled={!isQuizUnlocked(module.id)}
                       onClick={() => handleQuizClick(module.id)}
                     >
@@ -333,14 +331,14 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
                       </span>
                       {isQuizPassed(module.id) && (
                         <div className="flex items-center gap-1 ml-2">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                          <span className="text-xs text-green-600 font-medium">Réussi</span>
+                          <CheckCircle className="h-4 w-4 text-blue-600" />
+                          <span className="text-xs text-blue-600 font-medium">Réussi</span>
                         </div>
                       )}
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-center p-4 text-gray-500 text-sm">
+                  <div className="text-center p-4 text-muted-foreground text-sm">
                     Ce module n'a pas de quiz
                   </div>
                 )}
@@ -355,4 +353,3 @@ const ModuleAccordion = ({ formationId, modules, userProgress, formationProgress
 }
 
 export default ModuleAccordion
-

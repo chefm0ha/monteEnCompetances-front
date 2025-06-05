@@ -4,6 +4,7 @@
 import { useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../../context/AuthContext"
 import { useSidebar } from "../../context/SidebarContext"
+import { useTheme } from "../shared/theme-provider"
 import { Button } from "../ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import {
@@ -30,7 +31,7 @@ import {
   Award
 } from "lucide-react"
 import { APP_SETTINGS } from "../../config"
-import { cn } from "../../lib/utils"
+import { cn, getThemeLogo } from "../../lib/utils"
 import NotificationDropdown from "./NotificationDropdown"
 
 const Sidebar = () => {
@@ -39,6 +40,7 @@ const Sidebar = () => {
   const location = useLocation()
   // Use sidebar context instead of local state
   const { collapsed, toggleSidebar } = useSidebar()
+  const { theme } = useTheme()
 
   const handleLogout = () => {
     logout()
@@ -108,14 +110,14 @@ const Sidebar = () => {
 
   return (
     <div className={cn(
-      "fixed inset-y-0 left-0 z-40 flex flex-col bg-white shadow-lg transition-all duration-300",
+      "fixed inset-y-0 left-0 z-40 flex flex-col bg-card shadow-lg transition-all duration-300 border-r border-border",
       collapsed ? "w-16" : "w-64"
     )}>
       {/* Logo, notifications and toggle button */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center justify-center flex-1">
           <img 
-            src={APP_SETTINGS.logoUrl || "/placeholder.svg"} 
+            src={getThemeLogo(theme)} 
             alt="Logo" 
             className="h-8 w-16"
           />
@@ -137,7 +139,7 @@ const Sidebar = () => {
       {/* Role badge */}
       <div className={cn(
         "mx-auto mt-2 px-2 py-1 rounded text-xs font-medium",
-        isAdmin ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800",
+        isAdmin ? "bg-primary/10 text-primary" : "bg-green-500/10 text-green-600 dark:text-green-400",
         collapsed ? "w-8 h-8 flex items-center justify-center" : "w-auto"
       )}>
         {collapsed 
@@ -168,13 +170,13 @@ const Sidebar = () => {
       </nav>
 
       {/* User profile */}
-      <div className="border-t p-2">
+      <div className="border-t border-border p-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
               className={cn(
-                "w-full hover:bg-gray-100 transition-colors cursor-pointer",
+                "w-full hover:bg-accent transition-colors cursor-pointer",
                 collapsed ? "justify-center px-0" : "justify-start"
               )}
             >
@@ -188,7 +190,7 @@ const Sidebar = () => {
                     <span className="text-xs font-medium truncate max-w-[120px]">
                       {currentUser?.firstName} {currentUser?.lastName}
                     </span>
-                    <span className="text-xs text-gray-500 truncate max-w-[120px]">{currentUser?.email}</span>
+                    <span className="text-xs text-muted-foreground truncate max-w-[120px]">{currentUser?.email}</span>
                   </div>
                 )}
               </div>
@@ -196,25 +198,25 @@ const Sidebar = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent 
             align="end" 
-            className="w-56 bg-white border shadow-lg rounded-md p-1"
+            className="w-56"
             side="top"
             sideOffset={8}
           >
-            <DropdownMenuLabel className="px-2 py-1.5 text-sm font-semibold text-gray-900">
+            <DropdownMenuLabel>
               Mon compte
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="my-1 border-gray-200" />
+            <DropdownMenuSeparator />
             <DropdownMenuItem 
               onClick={() => navigate("/profile")}
-              className="px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-sm cursor-pointer transition-colors flex items-center"
+              className="cursor-pointer"
             >
               <User className="mr-2 h-4 w-4" />
               Profil
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="my-1 border-gray-200" />
+            <DropdownMenuSeparator />
             <DropdownMenuItem 
               onClick={handleLogout}
-              className="px-2 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-sm cursor-pointer transition-colors flex items-center"
+              className="cursor-pointer"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Déconnexion
