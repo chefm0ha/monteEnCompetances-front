@@ -37,42 +37,13 @@ const AdminDashboard = () => {
     }
 
     const fetchData = async () => {
-      try {
-        // Charger les statistiques des formations
-        try {
-          const formationsData = await formationService.getFormationsStats()
-          setFormationsStats(formationsData)
-        } catch (error) {
-          console.warn("Couldn't fetch formations stats, using mock data", error)
-          // Données fictives pour le développement
-          setFormationsStats({
-            totalFormations: 12,
-            completedFormations: 45,
-            inProgressFormations: 78,
-            notStartedFormations: 23,
-            formationsParCategorie: {
-              IT: 5,
-              "Soft Skills": 3,
-              Management: 2,
-              RGPD: 1,
-              Sécurité: 1,
-            },
-            formationsRecentes: [
-              { id: 1, title: "Cybersécurité pour débutants", completions: 15 },
-              { id: 2, title: "RGPD et protection des données", completions: 22 },
-              { id: 3, title: "Management d'équipe", completions: 8 },
-            ],
-          })
-        }
+      try {        // Charger les statistiques des formations
+        const formationsData = await formationService.getFormationsStats()
+        setFormationsStats(formationsData)
 
         // Charger les statistiques des collaborateurs
-        try {
-          const collaborateursData = await collaborateurService.getCollaborateursStats()
-          setCollaborateursStats(collaborateursData)
-        } catch (error) {
-          console.warn("Couldn't fetch collaborateurs stats, using mock data", error)
-          // Les données fictives sont déjà gérées dans le service
-        }
+        const collaborateursData = await collaborateurService.getCollaborateursStats()
+        setCollaborateursStats(collaborateursData)
       } catch (error) {
         console.error("Error fetching dashboard data:", error)
         setError("Impossible de récupérer les données du tableau de bord. Veuillez réessayer plus tard.")

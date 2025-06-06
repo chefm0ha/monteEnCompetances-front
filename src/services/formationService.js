@@ -730,6 +730,19 @@ export const formationService = {
       console.error('Error getting module supports progress:', error);
       throw error;
     }
+  },
+
+  /**
+   * Récupère les statistiques des formations (pour le tableau de bord admin)
+   */
+  getFormationsStats: async () => {
+    try {
+      const response = await API.get("/api/admin/formations/stats");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching formations statistics:", error);
+      throw error;
+    }
   }
 };
 
@@ -739,5 +752,6 @@ export const {
   isSupportSeen, 
   isModuleUnlocked,
   getFormationProgressWithModules,
-  getModuleSupportsProgress
+  getModuleSupportsProgress,
+  getFormationsStats
 } = formationService;

@@ -124,5 +124,37 @@ export const collaborateurService = {
       console.error("Error fetching collaborateurs statistics:", error)
       throw error
     }
+  },
+
+  // Update collaborateur profile (Admin only)
+  updateCollaborateurProfile: async (id, profileData) => {
+    try {
+      const response = await API.put(`/api/collaborateurs/profile/${id}`, profileData);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating collaborateur profile with ID ${id}:`, error);
+      
+      // Handle specific error cases
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        if (status === 409) {
+          // Email already exists conflict
+          throw new Error(data);
+        } else if (status === 404) {
+          throw new Error("Collaborateur not found");
+        } else if (status === 400 && data.errors) {
+          // Validation errors
+          const validationErrors = data.errors.reduce((acc, error) => {
+            acc[error.field] = error.message;
+            return acc;
+          }, {});
+          const errorObj = new Error("Validation failed");
+          errorObj.validationErrors = validationErrors;
+          throw errorObj;
+        }
+      }
+      throw error;
+    }
   }
 }

@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import Swal from 'sweetalert2'
 import { collaborateurService } from "../../services/collaborateurService"
+import { authService } from "../../services/authService"
 import { APP_SETTINGS } from "../../config"
 
 const Profile = () => {
@@ -40,15 +41,12 @@ const Profile = () => {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [activeTab, setActiveTab] = useState("general")
-  
-  const [profileData, setProfileData] = useState({
+    const [profileData, setProfileData] = useState({
     firstName: currentUser?.firstName || "",
     lastName: currentUser?.lastName || "",
     email: currentUser?.email || "",
-    poste: currentUser?.poste || "",
     role: currentUser?.role || ""
   })
-
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -61,7 +59,6 @@ const Profile = () => {
         firstName: currentUser.firstName || "",
         lastName: currentUser.lastName || "",
         email: currentUser.email || "",
-        poste: currentUser.poste || "",
         role: currentUser.role || ""
       })
     }
@@ -99,43 +96,53 @@ const Profile = () => {
 
     try {
       setSaving(true)
-        // Update profile via collaborateur service
+      
+      // Prepare update data - only basic profile fields
       const updateData = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
-        email: profileData.email,
-        role: profileData.role
+        email: profileData.email
       }
       
-      // Only include poste if user is admin
-      if (currentUser?.role === "ADMIN") {
-        updateData.poste = profileData.poste
-      }
+      let response;
       
-      await collaborateurService.updateCollaborateur(currentUser.id, updateData)
+      if (currentUser?.role === "ADMIN" || currentUser?.role === "USER") {
+        // Use auth service for admin and regular users
+        response = await authService.updateProfile(updateData)
+      } else if (currentUser?.role === "COLLABORATEUR") {
+        // For collaborateurs, add poste field from current user data
+        updateData.poste = currentUser.poste // Keep existing poste, don't allow editing
+        response = await collaborateurService.updateCollaborateurProfile(currentUser.id, updateData)
+      }
 
       Swal.fire({
         icon: 'success',
         title: 'Profil mis à jour',
         text: 'Vos informations ont été mises à jour avec succès.'
       })
-
-      // For a complete solution, you might want to refresh the user context here
-      // This would require adding an update method to your AuthContext
       
     } catch (error) {
       console.error("Error updating profile:", error)
-      setError("Impossible de mettre à jour le profil. Veuillez réessayer.")
+      
+      if (error.message === "Email already exists") {
+        setError("Cette adresse email est déjà utilisée par un autre utilisateur")
+      } else if (error.validationErrors) {
+        // Handle validation errors
+        const errorMessages = Object.values(error.validationErrors).join(", ")
+        setError(errorMessages)
+      } else {
+        setError("Impossible de mettre à jour le profil. Veuillez réessayer.")
+      }
+      
       Swal.fire({
         icon: 'error',
         title: 'Erreur',
-        text: "Impossible de mettre à jour le profil."
+        text: error.message || "Impossible de mettre à jour le profil."
       })
     } finally {
       setSaving(false)
     }
   }
-
   const handleChangePassword = async (e) => {
     e.preventDefault()
     setError("")
@@ -163,8 +170,11 @@ const Profile = () => {
     try {
       setSaving(true)
       
-      // This would typically call an API endpoint to change password
-      // For now, we'll simulate it since the service doesn't have this method
+      await authService.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword
+      })
       
       Swal.fire({
         icon: 'success',
@@ -181,11 +191,21 @@ const Profile = () => {
       
     } catch (error) {
       console.error("Error changing password:", error)
-      setError("Impossible de modifier le mot de passe. Veuillez réessayer.")
+      
+      if (error.message === "Invalid current password or passwords don't match") {
+        setError("Mot de passe actuel incorrect ou les nouveaux mots de passe ne correspondent pas")
+      } else if (error.validationErrors) {
+        // Handle validation errors
+        const errorMessages = Object.values(error.validationErrors).join(", ")
+        setError(errorMessages)
+      } else {
+        setError("Impossible de modifier le mot de passe. Veuillez réessayer.")
+      }
+      
       Swal.fire({
         icon: 'error',
         title: 'Erreur',
-        text: "Impossible de modifier le mot de passe."
+        text: error.message || "Impossible de modifier le mot de passe."
       })
     } finally {
       setSaving(false)
@@ -293,9 +313,7 @@ const Profile = () => {
                       placeholder="Votre nom"
                     />
                   </div>
-                </div>
-
-                <div className="space-y-2">
+                </div>                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -304,7 +322,8 @@ const Profile = () => {
                     value={profileData.email}
                     onChange={handleProfileChange}
                     placeholder="votre.email@exemple.com"
-                  />                </div>
+                  />
+                </div>
 
                 <div className="flex justify-end">
                   <Button type="submit" disabled={saving}>

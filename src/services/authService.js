@@ -102,4 +102,63 @@ export const authService = {
       throw error;
     }
   },
+
+  // Update user profile (firstName, lastName, email)
+  updateProfile: async (profileData) => {
+    try {
+      const response = await API.put("/auth/profile", profileData);
+      return response.data;
+    } catch (error) {
+      // Handle specific error cases
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        if (status === 500 && data.message === "Email already exists") {
+          throw new Error("Email already exists");
+        } else if (status === 404) {
+          throw new Error("User not found");
+        } else if (status === 400 && data.errors) {
+          // Validation errors
+          const validationErrors = data.errors.reduce((acc, error) => {
+            acc[error.field] = error.message;
+            return acc;
+          }, {});
+          const errorObj = new Error("Validation failed");
+          errorObj.validationErrors = validationErrors;
+          throw errorObj;
+        }
+      }
+      throw error;
+    }
+  },
+
+  // Change user password
+  changePassword: async (passwordData) => {
+    try {
+      const response = await API.put("/auth/change-password", passwordData);
+      return response.data;
+    } catch (error) {
+      // Handle specific error cases
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        if (status === 400) {
+          if (data.errors) {
+            // Validation errors
+            const validationErrors = data.errors.reduce((acc, error) => {
+              acc[error.field] = error.message;
+              return acc;
+            }, {});
+            const errorObj = new Error("Validation failed");
+            errorObj.validationErrors = validationErrors;
+            throw errorObj;
+          } else {
+            // Invalid current password or passwords don't match
+            throw new Error("Invalid current password or passwords don't match");
+          }
+        }
+      }
+      throw error;
+    }
+  },
 }
