@@ -89,6 +89,11 @@ const ChatbotWidget = () => {
     return null;
   }
 
+  // Don't render the chatbot on quiz pages
+  if (location.pathname.includes("/quiz")) {
+    return null;
+  }
+
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6">
