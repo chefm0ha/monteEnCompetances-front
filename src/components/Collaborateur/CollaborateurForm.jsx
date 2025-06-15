@@ -13,9 +13,8 @@ const CollaborateurForm = ({
   formError, 
   submitLabel = "Ajouter", 
   cancelLabel = "Annuler" 
-}) => {
-  // Liste des postes pour les sélecteurs
-  const postes = ["stagiaire", "embauche"];
+}) => {  // Liste des postes pour les sélecteurs
+  const postes = ["Stagiaire", "Embauché"];
   
   const [formData, setFormData] = useState({
     firstName: "",

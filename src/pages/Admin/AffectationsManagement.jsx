@@ -67,9 +67,8 @@ const AffectationsManagement = () => {
     // Filter states
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedPoste, setSelectedPoste] = useState("")
-  
-  // Liste des postes pour les filtres
-  const postes = ["stagiaire", "embauche"]
+    // Liste des postes pour les filtres
+  const postes = ["Stagiaire", "Embauché"]
   useEffect(() => {
     // Vérifier si l'utilisateur est un administrateur
     if (currentUser && currentUser.role !== "ADMIN") {

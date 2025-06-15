@@ -23,9 +23,8 @@ const FormationAssignation = ({ formationId = null }) => {
   const [collaborateurs, setCollaborateurs] = useState([]);
   const [selectedCollaborateurs, setSelectedCollaborateurs] = useState([]);
   const [alreadyAssigned, setAlreadyAssigned] = useState([]);  const [activeTab, setActiveTab] = useState("assign");
-
   // Liste des postes pour le filtre
-  const postes = ["stagiaire", "embauche"];
+  const postes = ["Stagiaire", "Embauché"];
 
   useEffect(() => {
     fetchData();

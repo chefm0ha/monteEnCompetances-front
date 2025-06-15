@@ -37,9 +37,8 @@ const FormationAssignmentPage = () => {
   const [selectedCollaborateurs, setSelectedCollaborateurs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPoste, setSelectedPoste] = useState("");  const [activeTab, setActiveTab] = useState("assign");
-
   // Liste des postes pour le filtre
-  const postes = ["stagiaire", "embauche"];
+  const postes = ["Stagiaire", "Embauché"];
 
   useEffect(() => {
     fetchData();
